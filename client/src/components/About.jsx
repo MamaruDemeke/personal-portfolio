@@ -1,51 +1,129 @@
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
 import { PROFILE, SKILL_CATEGORIES } from "../data/constants.js";
+import Icon from "./Icon.jsx";
+
+const STATS = [
+  { value: "3.91", label: "CGPA" },
+  { value: "78%", label: "Exit Exam" },
+  { value: "2+", label: "Years Experience" },
+];
 
 export default function About() {
   return (
-    <Section id="about" eyebrow="about" title="About Me">
-      <div className="grid gap-12 lg:grid-cols-[1.2fr_1fr]">
-        <motion.div variants={fadeUp} className="space-y-4 text-slate-400">
-          <p>
-            I&apos;m <span className="font-semibold text-white">{PROFILE.name}</span>, a{" "}
-            {PROFILE.role.toLowerCase()} based in {PROFILE.location} and a Computer
-            Science graduate from Mekdela Amba University, where I earned a CGPA of
-            3.91 and scored 78% on my national exit exam.
-          </p>
-          <p>
-            I have a passion for utilizing technology to address real-world
-            challenges. With strong skills in web development (HTML, CSS,
-            JavaScript, React) and video editing, I&apos;m eager to contribute to a
-            dynamic team, enhance operational efficiency and support company growth
-            through innovative solutions and proactive problem-solving.
-          </p>
-          <p>
-            I&apos;m a hardworking, responsible and quick-learning person — prepared
-            to apply my technical and creative skills to any role, ensuring
-            high-quality results and efficient task management.
-          </p>
+    <Section id="about" eyebrow="about" title="Behind the" accent="pixels">
+      <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-4">
+        {/* Bio — spans 2 rows on desktop */}
+        <motion.div
+          variants={fadeUp}
+          className="glass-card card-sheen p-7 md:col-span-2 lg:row-span-2"
+        >
+          <h3 className="mb-4 font-display text-2xl font-bold text-white">
+            Hi, I&apos;m {PROFILE.name} —{" "}
+            <span className="serif-accent text-mint">
+              a builder of things
+            </span>
+          </h3>
+          <div className="space-y-4 leading-relaxed text-slate-400">
+            <p>
+              A Computer Science graduate from Mekdela Amba University based in{" "}
+              {PROFILE.location}. I use technology to solve real-world
+              challenges — through clean, responsive web development and
+              compelling video storytelling.
+            </p>
+            <p>
+              With strong skills in web development (HTML, CSS, JavaScript,
+              React) and video editing, I&apos;m eager to contribute to a dynamic
+              team, enhance operational efficiency and support growth through
+              innovative solutions and proactive problem-solving.
+            </p>
+            <p>
+              Hardworking, responsible and quick-learning — I bring technical
+              precision and creative energy to every task, ensuring
+              high-quality results.
+            </p>
+          </div>
         </motion.div>
 
-        {/* Categorized skill badges */}
-        <motion.div variants={fadeUp} className="space-y-6">
-          {SKILL_CATEGORIES.map((cat) => (
-            <div key={cat.title} className="glass-card p-5">
-              <h3 className="mb-3 font-mono text-xs uppercase tracking-widest text-accent">
-                {cat.title}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {cat.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="rounded-full border border-white/10 bg-obsidian/60 px-3 py-1 text-xs text-slate-300 transition-colors hover:border-accent/50 hover:text-accent"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
+        {/* Stats */}
+        <motion.div
+          variants={fadeUp}
+          className="grid grid-cols-3 gap-3 md:col-span-3 lg:col-span-2 lg:grid-cols-1"
+        >
+          {STATS.map((s) => (
+            <div
+              key={s.label}
+              className="glass-card card-sheen flex flex-col items-center justify-center p-5 text-center lg:flex-row lg:justify-between lg:px-7 lg:text-left"
+            >
+              <span className="font-display text-3xl font-extrabold text-mint">
+                {s.value}
+              </span>
+              <span className="mt-1 font-mono text-xs uppercase tracking-widest text-slate-500 lg:mt-0">
+                {s.label}
+              </span>
             </div>
           ))}
+        </motion.div>
+
+        {/* Availability */}
+        <motion.div
+          variants={fadeUp}
+          className="glass-card card-sheen flex flex-col justify-between p-6 md:col-span-1"
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
+          </span>
+          <div className="mt-8">
+            <p className="font-display text-lg font-bold text-white">
+              Open to work
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Freelance &amp; full-time opportunities
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Location */}
+        <motion.div
+          variants={fadeUp}
+          className="glass-card card-sheen flex flex-col justify-between p-6"
+        >
+          <Icon name="briefcase" className="h-6 w-6 text-accent" />
+          <div className="mt-8">
+            <p className="font-display text-lg font-bold text-white">
+              {PROFILE.location}
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Working remotely, worldwide
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Skills — spans full width */}
+        <motion.div
+          variants={fadeUp}
+          className="glass-card card-sheen p-7 md:col-span-3 lg:col-span-4"
+        >
+          <h3 className="mb-6 font-mono text-xs uppercase tracking-[0.25em] text-accent">
+            Toolkit
+          </h3>
+          <div className="grid gap-6 sm:grid-cols-3">
+            {SKILL_CATEGORIES.map((cat) => (
+              <div key={cat.title}>
+                <p className="mb-3 text-sm font-semibold text-white">
+                  {cat.title}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {cat.skills.map((skill) => (
+                    <span key={skill} className="chip">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </Section>

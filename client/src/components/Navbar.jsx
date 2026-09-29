@@ -22,70 +22,70 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-white/10 bg-obsidian/70 backdrop-blur-xl"
-          : "bg-transparent"
+      className={`fixed inset-x-0 top-0 z-40 px-4 transition-all duration-300 ${
+        scrolled ? "pt-3" : "pt-5"
       }`}
     >
-      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <a href="#home" className="font-mono text-xl font-bold text-white">
+      <nav
+        className={`mx-auto flex h-14 max-w-3xl items-center justify-between rounded-full border px-5 transition-all duration-300 ${
+          scrolled
+            ? "border-white/10 bg-obsidian/80 shadow-glass backdrop-blur-xl"
+            : "border-transparent bg-transparent"
+        }`}
+      >
+        <a href="#home" className="font-mono text-lg font-bold text-white">
           <span className="text-accent">{"<"}</span>
           {PROFILE.brand}
           <span className="text-accent">{"/>"}</span>
         </a>
 
         {/* Desktop */}
-        <ul className="hidden items-center gap-8 md:flex">
-          {LINKS.map((l, i) => (
+        <ul className="hidden items-center gap-7 md:flex">
+          {LINKS.map((l) => (
             <li key={l.href}>
               <a
                 href={l.href}
-                className="group text-sm text-slate-300 transition-colors hover:text-accent"
+                className="relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-all after:duration-300 hover:text-accent hover:after:w-full"
               >
-                <span className="mr-1 font-mono text-xs text-accent">
-                  0{i + 1}.
-                </span>
                 {l.label}
               </a>
             </li>
           ))}
-          <li>
-            <a
-              href="#contact"
-              className="rounded-lg border border-accent/50 px-4 py-2 text-sm font-medium text-accent transition-all hover:bg-accent/10 hover:shadow-glow-accent"
-            >
-              Hire Me
-            </a>
-          </li>
         </ul>
 
-        {/* Mobile toggle */}
-        <button
-          className="text-slate-200 md:hidden"
-          onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle menu"
-        >
-          <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
-        </button>
+        <div className="flex items-center gap-3">
+          <a
+            href="#contact"
+            className="hidden rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-obsidian transition-all hover:bg-mint hover:shadow-glow-accent md:inline-flex"
+          >
+            Hire Me
+          </a>
+          <button
+            className="text-slate-200 md:hidden"
+            onClick={() => setOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-b border-white/10 bg-obsidian/95 backdrop-blur-xl md:hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mx-auto mt-2 max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-obsidian/95 backdrop-blur-xl md:hidden"
           >
-            <ul className="space-y-1 px-6 py-4">
+            <ul className="space-y-1 p-3">
               {LINKS.map((l) => (
                 <li key={l.href}>
                   <a
                     href={l.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-slate-300 hover:bg-surface hover:text-accent"
+                    className="block rounded-xl px-4 py-2.5 text-slate-300 hover:bg-surface hover:text-accent"
                   >
                     {l.label}
                   </a>

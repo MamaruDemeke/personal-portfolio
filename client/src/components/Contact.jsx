@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
 import { PROFILE } from "../data/constants.js";
+import Icon from "./Icon.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -37,32 +38,70 @@ export default function Contact() {
   };
 
   return (
-    <Section id="contact" eyebrow="contact" title="Get In Touch">
+    <Section id="contact" eyebrow="contact" title="Let's build" accent="something">
       <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
-        <motion.div variants={fadeUp} className="space-y-4 text-slate-400">
-          <p className="max-w-md">
-            My inbox is always open — whether you have a project in mind, a role to
-            discuss, or just want to say hi. I&apos;ll do my best to reply within 24
-            hours.
+        <motion.div variants={fadeUp} className="space-y-5">
+          <p className="max-w-md leading-relaxed text-slate-400">
+            My inbox is always open — whether you have a project in mind, a role
+            to discuss, or just want to say hi. I&apos;ll do my best to reply
+            within 24 hours.
           </p>
+
           <a
             href={`mailto:${PROFILE.email}`}
-            className="inline-flex items-center gap-2 font-mono text-accent hover:underline"
+            className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
           >
-            {PROFILE.email}
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+              <Icon name="mail" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                Email
+              </span>
+              <span className="block truncate text-sm text-slate-200">
+                {PROFILE.email}
+              </span>
+            </span>
           </a>
-          <p className="flex flex-col gap-1 text-sm text-slate-400">
-            <a href={`tel:${PROFILE.phone}`} className="hover:text-accent">
-              📞 {PROFILE.phone}
-            </a>
-            <a href={`tel:${PROFILE.phoneAlt}`} className="hover:text-accent">
-              📞 {PROFILE.phoneAlt}
-            </a>
-          </p>
-          <p className="text-sm text-slate-500">📍 {PROFILE.location}</p>
+
+          <a
+            href={`tel:${PROFILE.phone}`}
+            className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+              <Icon name="phone" className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                Phone
+              </span>
+              <span className="block truncate text-sm text-slate-200">
+                {PROFILE.phone} · {PROFILE.phoneAlt}
+              </span>
+            </span>
+          </a>
+
+          <div className="glass-card flex items-center gap-4 p-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+              <Icon name="pin" className="h-5 w-5" />
+            </span>
+            <span>
+              <span className="block font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                Location
+              </span>
+              <span className="block text-sm text-slate-200">
+                {PROFILE.location}
+              </span>
+            </span>
+          </div>
         </motion.div>
 
-        <motion.form variants={fadeUp} onSubmit={onSubmit} className="glass-card space-y-4 p-6" noValidate>
+        <motion.form
+          variants={fadeUp}
+          onSubmit={onSubmit}
+          className="glass-card card-sheen space-y-4 p-7"
+          noValidate
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="name" className="mb-1.5 block text-sm text-slate-300">
@@ -127,8 +166,13 @@ export default function Contact() {
             </p>
           )}
 
-          <button type="submit" disabled={sending} className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+          <button
+            type="submit"
+            disabled={sending}
+            className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
             {sending ? "Sending…" : "Send Message"}
+            <Icon name="send" className="h-4 w-4" />
           </button>
         </motion.form>
       </div>

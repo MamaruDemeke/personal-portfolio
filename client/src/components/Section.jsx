@@ -14,9 +14,9 @@ export const stagger = {
   visible: { transition: { staggerChildren: 0.12 } },
 };
 
-export default function Section({ id, eyebrow, title, children, className = "" }) {
+export default function Section({ id, eyebrow, title, accent, children, className = "" }) {
   return (
-    <section id={id} className={`mx-auto max-w-6xl px-6 py-24 ${className}`}>
+    <section id={id} className={`mx-auto max-w-6xl px-6 py-28 ${className}`}>
       <motion.div
         variants={stagger}
         initial="hidden"
@@ -24,13 +24,18 @@ export default function Section({ id, eyebrow, title, children, className = "" }
         viewport={{ once: true, margin: "-80px" }}
       >
         <motion.p variants={fadeUp} className="section-title">
-          {`// ${eyebrow}`}
+          {eyebrow}
         </motion.p>
         <motion.h2
           variants={fadeUp}
-          className="mb-12 text-3xl font-bold text-white md:text-4xl"
+          className="mb-14 font-display text-4xl font-extrabold tracking-tight text-white md:text-5xl"
         >
-          {title}
+          {title}{" "}
+          {accent && (
+            <span className="serif-accent bg-gradient-to-r from-accent to-mint bg-clip-text pr-2 font-normal text-transparent">
+              {accent}
+            </span>
+          )}
         </motion.h2>
         {children}
       </motion.div>
