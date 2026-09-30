@@ -1,56 +1,46 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from "firebase/storage";
-import { storage } from "../../firebase.js";
+  TextInput,
+  TextArea,
+  SelectInput,
+  ImageUploadField,
+} from "./fields.jsx";
 import Icon from "../Icon.jsx";
 
 const EMPTY = {
   title: "",
-  category: "Web App",
+  category: "",
   description: "",
   tech: "",
   repoUrl: "",
   liveUrl: "",
   featured: false,
+  imageUrl: "",
 };
 
-export default function ProjectForm({ initial, onClose, onSave }) {
+export default function ProjectForm({ initial, categories = [], onClose, onSave }) {
   const [form, setForm] = useState(
     initial
       ? { ...EMPTY, ...initial, tech: (initial.tech || []).join(", ") }
-      : EMPTY
+      : { ...EMPTY, category: categories[0] || "Web" }
   );
-  const [imageFile, setImageFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const onChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
-  };
+  const set = (field) => (value) => setForm((f) => ({ ...f, [field]: value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setBusy(true);
     try {
-      let imageUrl = form.imageUrl || "";
-      if (imageFile) {
-        const path = `projects/${Date.now()}-${imageFile.name}`;
-        const snap = await uploadBytes(ref(storage, path), imageFile);
-        imageUrl = await getDownloadURL(snap.ref);
-      }
       await onSave({
         ...form,
         tech: form.tech
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
-        imageUrl,
       });
     } catch (err) {
       setError(err.message);
@@ -84,80 +74,97 @@ export default function ProjectForm({ initial, onClose, onSave }) {
           </button>
         </div>
 
-        <div>
-          <label htmlFor="p-title" className="mb-1.5 block text-sm text-slate-300">Title</label>
-          <input id="p-title" name="title" required value={form.title} onChange={onChange} className="input-field" />
-        </div>
+        <TextInput label="Title" value={form.title} onChange={set("title")} required />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="p-category" className="mb-1.5 block text-sm text-slate-300">Category</label>
-            <select id="p-category" name="category" value={form.category} onChange={onChange} className="input-field">
-              {["Web App", "E-Commerce", "Mobile", "Backend", "Other"].map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="p-tech" className="mb-1.5 block text-sm text-slate-300">
-              Tech <span className="text-slate-500">(comma separated)</span>
-            </label>
-            <input id="p-tech" name="tech" value={form.tech} onChange={onChange} className="input-field" placeholder="React, Firebase, Tailwind" />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="p-desc" className="mb-1.5 block text-sm text-slate-300">Description</label>
-          <textarea id="p-desc" name="description" required rows={4} value={form.description} onChange={onChange} className="input-field resize-y" />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="p-repo" className="mb-1.5 block text-sm text-slate-300">Repo URL</label>
-            <input id="p-repo" name="repoUrl" type="url" value={form.repoUrl} onChange={onChange} className="input-field" />
-          </div>
-          <div>
-            <label htmlFor="p-live" className="mb-1.5 block text-sm text-slate-300">Live URL</label>
-            <input id="p-live" name="liveUrl" type="url" value={form.liveUrl} onChange={onChange} className="input-field" />
-          </div>
-        </div>
-
-        <div>
-          <label htmlFor="p-image" className="mb-1.5 block text-sm text-slate-300">
-            Cover image <span className="text-slate-500">(stored in Firebase Storage)</span>
-          </label>
-          <input
-            id="p-image"
-            type="file"
-            accept="image/*"
-            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            className="block w-full text-sm text-slate-400 file:mr-4 file:rounded-lg file:border-0 file:bg-accent/15 file:px-4 file:py-2 file:text-sm file:text-accent"
+          <SelectInput
+            label="Category"
+            value={form.category}
+            onChange={set("category")}
+            options={categories}
+            hint="Managed in Content → Projects"
           />
-          {form.imageUrl && !imageFile && (
-            <img src={form.imageUrl} alt="Current cover" className="mt-3 h-28 rounded-lg object-cover" />
-          )}
+          <TextInput
+            label="Tech (comma separated)"
+            value={form.tech}
+            onChange={set("tech")}
+            placeholder="React, Firebase, Tailwind"
+          />
         </div>
+
+        <TextArea
+          label="Description"
+          value={form.description}
+          onChange={set("description")}
+          rows={4}
+          required
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextInput
+            label="Repo URL"
+            value={form.repoUrl}
+            onChange={set("repoUrl")}
+            placeholder="https://github.com/…"
+          />
+          <TextInput
+            label="Live URL"
+            value={form.liveUrl}
+            onChange={set("liveUrl")}
+            placeholder="https://…"
+          />
+        </div>
+
+        <ImageUploadField
+          label="Cover image"
+          currentUrl={form.imageUrl}
+          aspect="aspect-video"
+          maxMB={5}
+          hint="Compressed in your browser before upload (max 5 MB)."
+          storagePath={(f) =>
+            `projects/cover-${Date.now()}.${
+              f.type === "image/png"
+                ? "png"
+                : f.type === "image/webp"
+                  ? "webp"
+                  : "jpg"
+            }`
+          }
+          onUploaded={set("imageUrl")}
+          onCleared={() => set("imageUrl")("")}
+        />
 
         <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
           <input
             type="checkbox"
-            name="featured"
-            checked={form.featured}
-            onChange={onChange}
+            checked={Boolean(form.featured)}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, featured: e.target.checked }))
+            }
             className="h-4 w-4 accent-emerald-500"
           />
           Mark as featured
         </label>
 
         {error && (
-          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400">{error}</p>
+          <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
+            {error}
+          </p>
         )}
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} className="btn-outline !px-5 !py-2.5 text-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-outline !px-5 !py-2.5 text-sm"
+          >
             Cancel
           </button>
-          <button type="submit" disabled={busy} className="btn-primary !px-5 !py-2.5 text-sm disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={busy}
+            className="btn-primary !px-5 !py-2.5 text-sm disabled:opacity-60"
+          >
             {busy ? "Saving…" : "Save Project"}
           </button>
         </div>

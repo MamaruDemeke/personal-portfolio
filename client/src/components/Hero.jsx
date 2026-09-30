@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { SOCIALS } from "../data/constants.js";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 import { fadeUp, stagger } from "./Section.jsx";
 
 export default function Hero() {
-  const { profile } = useSiteContent();
+  const { profile, hero, socials } = useSiteContent();
+  const roles = hero.roles || [];
+  const socialList = socials || [];
 
   return (
     <section
@@ -49,21 +50,23 @@ export default function Hero() {
         className="relative z-10 mx-auto max-w-4xl text-center"
       >
         {/* Live status pill */}
-        <motion.a
-          href="#contact"
-          variants={fadeUp}
-          className="glass-card group mb-10 inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-sm text-sage"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-          </span>
-          {profile.status}
-          <Icon
-            name="arrow"
-            className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-          />
-        </motion.a>
+        {profile.status && (
+          <motion.a
+            href="#contact"
+            variants={fadeUp}
+            className="glass-card group mb-10 inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-sm text-sage"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+            </span>
+            {profile.status}
+            <Icon
+              name="arrow"
+              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+            />
+          </motion.a>
+        )}
 
         <motion.h1
           variants={fadeUp}
@@ -75,18 +78,21 @@ export default function Hero() {
           </span>
         </motion.h1>
 
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-lg text-slate-400 md:text-xl"
-        >
-          <span className="font-mono text-sm uppercase tracking-[0.3em] text-accent">
-            Web Developer
-          </span>
-          <span className="text-slate-600">/</span>
-          <span className="font-mono text-sm uppercase tracking-[0.3em] text-accent">
-            Video Editor
-          </span>
-        </motion.p>
+        {roles.length > 0 && (
+          <motion.p
+            variants={fadeUp}
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-lg text-slate-400 md:text-xl"
+          >
+            {roles.map((role, i) => (
+              <span key={role} className="flex items-center gap-3">
+                {i > 0 && <span className="text-slate-600">/</span>}
+                <span className="font-mono text-sm uppercase tracking-[0.3em] text-accent">
+                  {role}
+                </span>
+              </span>
+            ))}
+          </motion.p>
+        )}
 
         <motion.p
           variants={fadeUp}
@@ -99,41 +105,45 @@ export default function Hero() {
           variants={fadeUp}
           className="mt-10 flex flex-wrap items-center justify-center gap-4"
         >
-          <a href="#projects" className="btn-primary">
-            View My Work
-            <Icon name="arrow" className="h-4 w-4" />
-          </a>
-          <a href="#contact" className="btn-outline">
-            Get In Touch
-          </a>
-          <a
-            href={profile.resumeUrl || "/resume.pdf"}
-            download
-            className="btn-outline"
-          >
-            Download CV
-            <Icon name="download" className="h-4 w-4" />
-          </a>
+          {hero.primaryCta && (
+            <a href={hero.primaryHref || "#projects"} className="btn-primary">
+              {hero.primaryCta}
+              <Icon name="arrow" className="h-4 w-4" />
+            </a>
+          )}
+          {hero.secondaryCta && (
+            <a href={hero.secondaryHref || "#contact"} className="btn-outline">
+              {hero.secondaryCta}
+            </a>
+          )}
+          {hero.showResume && profile.resumeUrl && (
+            <a href={profile.resumeUrl} download className="btn-outline">
+              {hero.resumeCta || "Download CV"}
+              <Icon name="download" className="h-4 w-4" />
+            </a>
+          )}
         </motion.div>
 
-        <motion.div
-          variants={fadeUp}
-          className="mt-10 flex items-center justify-center gap-5"
-        >
-          {SOCIALS.map((s) => (
-            <a
-              key={s.label}
-              href={s.href}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={s.label}
-              title={s.label}
-              className="glass-card flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition-all duration-300 hover:-translate-y-1 hover:text-accent hover:shadow-glow-accent"
-            >
-              <Icon name={s.icon} className="h-5 w-5" />
-            </a>
-          ))}
-        </motion.div>
+        {socialList.length > 0 && (
+          <motion.div
+            variants={fadeUp}
+            className="mt-10 flex items-center justify-center gap-5"
+          >
+            {socialList.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target={s.href?.startsWith("http") ? "_blank" : undefined}
+                rel="noreferrer"
+                aria-label={s.label}
+                title={s.label}
+                className="glass-card flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition-all duration-300 hover:-translate-y-1 hover:text-accent hover:shadow-glow-accent"
+              >
+                <Icon name={s.icon} className="h-5 w-5" />
+              </a>
+            ))}
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Scroll hint */}

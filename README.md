@@ -19,10 +19,12 @@ Typography: **Plus Jakarta Sans** (UI) and **Fira Code** (code/meta), loaded fro
 ├── client/                  # React + Vite SPA
 │   ├── src/
 │   │   ├── components/      # Navbar, Hero, About, Experience, Projects, Contact…
-│   │   │   └── admin/       # AdminDashboard + ProjectForm
+│   │   │   └── admin/       # AdminDashboard, ContentForm, ProjectForm
+│   │   │       └── content/ # one editor per content area (Profile, Hero, About…)
 │   │   ├── pages/           # Portfolio (/) and Admin (/admin)
-│   │   ├── hooks/           # useProjects (Firestore live query), useAuth
-│   │   ├── data/            # constants.js — YOUR profile content, edit here
+│   │   ├── hooks/           # useProjects (Firestore live query), useAuth,
+│   │   │                    # useSiteContent (live site-content context)
+│   │   ├── data/            # constants.js — fallback/seed content, edit here
 │   │   ├── firebase.js      # Client SDK initialization
 │   │   └── index.css        # Tailwind layers + glass utilities
 │   ├── tailwind.config.js
@@ -33,8 +35,8 @@ Typography: **Plus Jakarta Sans** (UI) and **Fira Code** (code/meta), loaded fro
 │   ├── config/firebaseAdmin.js
 │   └── index.js             # Serves API + static client build
 ├── firebase.json            # Firebase Hosting / Firestore / Storage config
-├── firestore.rules          # Public read projects; admin-only writes/messages
-├── storage.rules            # Project images: public read, admin-only write
+├── firestore.rules          # Public read projects/site; admin-only writes/messages
+├── storage.rules            # projects / cv / certificates / profile folders
 ├── Dockerfile               # Fullstack container (used by Verdent publish)
 └── .verdentc.json           # Verdent deployment manifest (appPort 8080)
 ```
@@ -115,9 +117,36 @@ npm start                          # Express serves API + client on $PORT
 
 ## 6. Admin Dashboard
 
-- Visit `/admin`, sign in with the Firebase Auth user you created.
-- **Projects tab**: full CRUD (create, edit, delete, feature toggle) with Firebase Storage image upload. The public gallery live-updates via Firestore `onSnapshot`; until you create the first project, curated seed data from `client/src/data/constants.js` is displayed.
-- **Messages tab**: read/unread inbox for contact submissions with delete.
+Visit `/admin` and sign in with the Firebase Auth user you created.
+
+### Content tab — everything on the public page
+
+| Sub-tab | What you can edit |
+| --- | --- |
+| **Profile** | Name, brand, role, location, status pill, tagline, email, phones, **CV upload (PDF)**, **logo upload**, **favicon upload** |
+| **Hero** | Headline roles, all three CTA labels + anchors, show/hide the CV button |
+| **About** | Greeting, highlighted words, bio paragraphs, stat cards (add/remove/reorder), availability card, location note |
+| **Skills** | Skill categories — add, rename, reorder, delete |
+| **Experience** | Timeline roles — add, rename, reorder, delete, with highlights and tech tags |
+| **Certificates** | Add/reorder/delete certificates and **upload the PDF or image file** for each |
+| **Socials** | Social links — add, reorder, delete, pick the icon |
+| **Layout** | Navbar links (reorder/rename/hide) and per-section visibility + headings |
+| **Projects** | The filter chips used by the gallery |
+| **Contact** | Contact intro copy, button label, success message |
+
+- Uploads are **resumable** (they survive connection blips) and show a live percentage. Images are compressed in the browser before sending, so they upload fast on slow connections.
+- Edits auto-save to a **local draft**; hit **Save & Publish Changes** to push them to Firestore. The public site updates instantly via `onSnapshot`.
+- **Discard** reverts to the last published version.
+
+### Projects tab
+
+Full CRUD with browser-side image compression, a reorder (▲▼) control, an inline featured toggle, and a category dropdown driven by Content → Projects.
+
+### Messages tab
+
+Read/unread inbox for contact submissions with delete.
+
+Until you create the first project, the gallery falls back to the curated seed data in `client/src/data/constants.js`.
 
 ## 7. Deployment Options
 
@@ -133,10 +162,11 @@ The repo ships a `Dockerfile` (multi-stage: builds `client/dist`, installs serve
 
 ## 8. Security Notes
 
-- `firestore.rules` and `storage.rules` enforce: public read of projects, admin-only writes, anyone may create messages but only admins may read/modify them.
+- `firestore.rules` and `storage.rules` enforce: public read of projects and site content, admin-only writes, anyone may create messages but only admins may read/modify them.
+- Storage write limits enforced by rules: CV (PDF, 10 MB), certificates (PDF/image, 10 MB), project covers and profile images (image, 5 MB).
 - The contact API applies validation (`express-validator`) and 5 requests / 15 min rate limiting per IP.
 - All service-account keys and SMTP credentials live in server-only env vars; nothing private ships to the browser.
 
 ## 9. Customizing Your Content
 
-Edit `client/src/data/constants.js` — name, role, status pill text, socials, skill categories, experience timeline, and seed projects. Everything else reads from there.
+Everything is editable at runtime from `/admin` → **Content**. `client/src/data/constants.js` only holds the fallback/seed content that is shown before you publish for the first time.

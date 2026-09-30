@@ -1,6 +1,8 @@
 /* ============================================================
-   Central profile content — Mamaru Demeke Tegegne
-   Edit everything about YOU here.
+   Central portfolio content — Mamaru Demeke
+   Every export here is the FALLBACK / seed used before (or
+   instead of) the admin dashboard publishing to Firestore
+   (site/main). Nothing here needs editing after go-live.
    ============================================================ */
 
 export const PROFILE = {
@@ -16,12 +18,106 @@ export const PROFILE = {
   phoneAlt: "+251946049376",
   resumeUrl: "/resume.pdf",
   status: "Open to new opportunities",
+  logoUrl: "",
+  faviconUrl: "",
 };
+
+/* Hero section — headline roles, CTA labels and targets */
+export const HERO = {
+  roles: ["Web Developer", "Video Editor"],
+  primaryCta: "View My Work",
+  primaryHref: "#projects",
+  secondaryCta: "Get In Touch",
+  secondaryHref: "#contact",
+  resumeCta: "Download CV",
+  showResume: true,
+};
+
+/* About section — bio copy, stats and the two small cards */
+export const ABOUT = {
+  greeting: "Hi, I’m",
+  headingAccent: "a builder of things",
+  paragraphs: [
+    "A Computer Science graduate from Mekdela Amba University based in Bole, Addis Ababa. I use technology to solve real-world challenges — through clean, responsive web development and compelling video storytelling.",
+    "With strong skills in web development (HTML, CSS, JavaScript, React) and video editing, I’m eager to contribute to a dynamic team, enhance operational efficiency and support growth through innovative solutions and proactive problem-solving.",
+    "Hardworking, responsible and quick-learning — I bring technical precision and creative energy to every task, ensuring high-quality results.",
+  ],
+  stats: [
+    { value: "3.91", label: "CGPA" },
+    { value: "78%", label: "Exit Exam" },
+    { value: "2+", label: "Years Experience" },
+  ],
+  availability: {
+    enabled: true,
+    title: "Open to work",
+    text: "Freelance & full-time opportunities",
+  },
+  locationNote: "Working remotely, worldwide",
+};
+
+/* Contact section copy */
+export const CONTACT_COPY = {
+  intro:
+    "My inbox is always open — whether you have a project in mind, a role to discuss, or just want to say hi. I’ll do my best to reply within 24 hours.",
+  submitLabel: "Send Message",
+  sendingLabel: "Sending…",
+  successMessage: "Message sent! I'll get back to you soon.",
+};
+
+/* Per-section visibility + headings. `visible: false` hides the block. */
+export const SECTION_META = {
+  marquee: { visible: true },
+  about: { visible: true, eyebrow: "about", title: "Behind the", accent: "pixels" },
+  skills: { visible: true, eyebrow: "skills", title: "My", accent: "toolkit" },
+  experience: {
+    visible: true,
+    eyebrow: "experience",
+    title: "Where I've",
+    accent: "worked",
+  },
+  certificates: {
+    visible: true,
+    eyebrow: "certificates",
+    title: "Certified",
+    accent: "learning",
+  },
+  projects: { visible: true, eyebrow: "projects", title: "Selected", accent: "work" },
+  contact: { visible: true, eyebrow: "contact", title: "Let's build", accent: "something" },
+};
+
+/* Navbar links — reorder, rename, hide or add from /admin → Content */
+export const NAV_LINKS = [
+  { label: "About", href: "#about", visible: true },
+  { label: "Skills", href: "#skills", visible: true },
+  { label: "Experience", href: "#experience", visible: true },
+  { label: "Certificates", href: "#certificates", visible: true },
+  { label: "Projects", href: "#projects", visible: true },
+  { label: "Contact", href: "#contact", visible: true },
+];
 
 export const SOCIALS = [
   { label: "GitHub", href: "https://github.com/MamaruDemeke", icon: "github" },
+  { label: "LinkedIn", href: "https://linkedin.com/in/MamaruDemeke", icon: "linkedin" },
   { label: "Email", href: "mailto:mamardemeke1221@gmail.com", icon: "mail" },
   { label: "Phone", href: "tel:+251943467433", icon: "phone" },
+];
+
+/* Icon names offered by the social-link picker */
+export const SOCIAL_ICONS = [
+  "github",
+  "linkedin",
+  "x",
+  "instagram",
+  "telegram",
+  "whatsapp",
+  "youtube",
+  "tiktok",
+  "dribbble",
+  "behance",
+  "globe",
+  "mail",
+  "phone",
+  "link",
 ];
 
 export const SKILL_CATEGORIES = [
@@ -72,28 +168,34 @@ export const EXPERIENCE = [
   },
 ];
 
-/* Certificates — edit this list with YOUR real certificates.
-   Set `url` to the credential/verify link (leave "" to hide the link). */
+/* Certificates — the admin uploads the actual PDF/image file per entry.
+   Set `url` to a credential/verify link (leave "" to hide the link). */
 export const CERTIFICATES = [
   {
     title: "Web Development",
     issuer: "Udemy",
     year: "2024",
     url: "",
+    fileUrl: "",
   },
   {
     title: "Responsive Web Design",
     issuer: "freeCodeCamp",
     year: "2024",
     url: "",
+    fileUrl: "",
   },
   {
     title: "Video Editing",
     issuer: "Coursera",
     year: "2023",
     url: "",
+    fileUrl: "",
   },
 ];
+
+/* Project filter chips on the public gallery */
+export const PROJECT_CATEGORIES = ["All", "Web", "Video"];
 
 /* Seed projects — used when the Firestore `projects` collection is empty,
    so the site always looks complete. Manage real projects from /admin. */
@@ -107,7 +209,7 @@ export const SEED_PROJECTS = [
     tech: ["React", "Vite", "Tailwind CSS", "Firebase"],
     imageUrl: "",
     repoUrl: "https://github.com/MamaruDemeke",
-    liveUrl: "#",
+    liveUrl: "",
     featured: true,
   },
   {
@@ -119,7 +221,7 @@ export const SEED_PROJECTS = [
     tech: ["HTML", "CSS", "JavaScript", "React"],
     imageUrl: "",
     repoUrl: "https://github.com/MamaruDemeke",
-    liveUrl: "#",
+    liveUrl: "",
     featured: false,
   },
   {
@@ -131,9 +233,7 @@ export const SEED_PROJECTS = [
     tech: ["Video Editing", "Content Creation"],
     imageUrl: "",
     repoUrl: "",
-    liveUrl: "#",
+    liveUrl: "",
     featured: false,
   },
 ];
-
-export const PROJECT_CATEGORIES = ["All", "Web", "Video"];

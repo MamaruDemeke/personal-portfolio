@@ -4,8 +4,10 @@ import TechIcon from "./TechIcon.jsx";
 
 export default function Marquee() {
   const { skills } = useSiteContent();
-  const items = skills.flatMap((c) => c.skills);
-  const row = [...items, ...items];
+  const items = (skills || []).flatMap((c) => c.skills || []);
+  const row = items.length ? [...items, ...items] : [];
+
+  if (!row.length) return null;
 
   return (
     <div

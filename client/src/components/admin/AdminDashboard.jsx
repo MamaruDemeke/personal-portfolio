@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   collection,
   onSnapshot,
@@ -8,26 +8,36 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  writeBatch,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase.js";
+import { DEFAULT_CONTENT } from "../../hooks/useSiteContent.jsx";
+import { sortProjects } from "../../hooks/useProjects.js";
 import ProjectForm from "./ProjectForm.jsx";
 import ContentForm from "./ContentForm.jsx";
 import Icon from "../Icon.jsx";
 
 const TABS = ["Content", "Projects", "Messages"];
 
+const timeFmt = (ts) => {
+  const d = ts?.toDate?.();
+  return d ? d.toLocaleString() : "";
+};
+
 export default function AdminDashboard() {
   const [tab, setTab] = useState("Content");
   const [projects, setProjects] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [editing, setEditing] = useState(null); // null | {} | project
+  const [categories, setCategories] = useState(DEFAULT_CONTENT.projectCategories);
+  const [editing, setEditing] = useState(null);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
     const u1 = onSnapshot(
       query(collection(db, "projects"), orderBy("createdAt", "desc")),
-      (snap) => setProjects(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (snap) =>
+        setProjects(sortProjects(snap.docs.map((d) => ({ id: d.id, ...d.data() })))),
       (err) => setNotice(`Projects error: ${err.message}`)
     );
     const u2 = onSnapshot(
@@ -35,24 +45,75 @@ export default function AdminDashboard() {
       (snap) => setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
       (err) => setNotice(`Messages error: ${err.message}`)
     );
+    const u3 = onSnapshot(
+      doc(db, "site", "main"),
+      (snap) => {
+        if (!snap.exists()) return;
+        const cats = snap.data().projectCategories;
+        if (Array.isArray(cats) && cats.length) setCategories(cats);
+      },
+      () => {}
+    );
     return () => {
       u1();
       u2();
+      u3();
     };
   }, []);
 
+  /* Project categories exclude the "All" pseudo-filter. */
+  const projectCategories = useMemo(
+    () => categories.filter((c) => c !== "All"),
+    [categories]
+  );
+
   const removeProject = async (p) => {
     if (!window.confirm(`Delete project "${p.title}"?`)) return;
-    await deleteDoc(doc(db, "projects", p.id));
+    try {
+      await deleteDoc(doc(db, "projects", p.id));
+    } catch (err) {
+      setNotice(`Delete failed: ${err.message}`);
+    }
+  };
+
+  /** Reorders by writing an `order` key the public list sorts by. */
+  const moveProject = async (index, dir) => {
+    const target = index + dir;
+    if (target < 0 || target >= projects.length) return;
+    const next = [...projects];
+    [next[index], next[target]] = [next[target], next[index]];
+    const batch = writeBatch(db);
+    next.forEach((p, i) => batch.update(doc(db, "projects", p.id), { order: i }));
+    try {
+      await batch.commit();
+    } catch (err) {
+      setNotice(`Reorder failed: ${err.message}`);
+    }
+  };
+
+  const toggleFeatured = async (p) => {
+    try {
+      await updateDoc(doc(db, "projects", p.id), { featured: !p.featured });
+    } catch (err) {
+      setNotice(`Update failed: ${err.message}`);
+    }
   };
 
   const removeMessage = async (m) => {
     if (!window.confirm("Delete this message?")) return;
-    await deleteDoc(doc(db, "messages", m.id));
+    try {
+      await deleteDoc(doc(db, "messages", m.id));
+    } catch (err) {
+      setNotice(`Delete failed: ${err.message}`);
+    }
   };
 
   const toggleRead = async (m) => {
-    await updateDoc(doc(db, "messages", m.id), { read: !m.read });
+    try {
+      await updateDoc(doc(db, "messages", m.id), { read: !m.read });
+    } catch (err) {
+      setNotice(`Update failed: ${err.message}`);
+    }
   };
 
   const unread = messages.filter((m) => !m.read).length;
@@ -94,7 +155,10 @@ export default function AdminDashboard() {
       {tab === "Projects" && (
         <section>
           <div className="mb-6 flex justify-end">
-            <button onClick={() => setEditing({})} className="btn-primary !px-5 !py-2.5 text-sm">
+            <button
+              onClick={() => setEditing({})}
+              className="btn-primary !px-5 !py-2.5 text-sm"
+            >
               + New Project
             </button>
           </div>
@@ -106,18 +170,49 @@ export default function AdminDashboard() {
             </p>
           ) : (
             <div className="space-y-3">
-              {projects.map((p) => (
+              {projects.map((p, i) => (
                 <div
                   key={p.id}
                   className="glass-card flex flex-wrap items-center gap-4 p-4"
                 >
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => moveProject(i, -1)}
+                      disabled={i === 0}
+                      className="rounded border border-white/10 p-1 text-slate-400 hover:text-accent disabled:opacity-30"
+                      aria-label={`Move ${p.title} up`}
+                    >
+                      <Icon name="up" className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => moveProject(i, 1)}
+                      disabled={i === projects.length - 1}
+                      className="rounded border border-white/10 p-1 text-slate-400 hover:text-accent disabled:opacity-30"
+                      aria-label={`Move ${p.title} down`}
+                    >
+                      <Icon name="down" className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  {p.imageUrl && (
+                    <img
+                      src={p.imageUrl}
+                      alt=""
+                      className="h-14 w-24 shrink-0 rounded-lg object-cover"
+                    />
+                  )}
+
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-white">
                       {p.title}{" "}
                       {p.featured && (
-                        <span className="ml-1 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-xs text-accent">
+                        <button
+                          onClick={() => toggleFeatured(p)}
+                          className="ml-1 rounded bg-accent/15 px-1.5 py-0.5 font-mono text-xs text-accent hover:bg-accent/25"
+                          title="Toggle featured"
+                        >
                           featured
-                        </span>
+                        </button>
                       )}
                     </h3>
                     <p className="truncate text-sm text-slate-400">
@@ -125,6 +220,7 @@ export default function AdminDashboard() {
                       {p.description}
                     </p>
                   </div>
+
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEditing(p)}
@@ -179,7 +275,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs text-slate-500">
-                      {m.createdAt?.toDate?.().toLocaleString() ?? ""}
+                      {timeFmt(m.createdAt)}
                     </span>
                     <button
                       onClick={() => toggleRead(m)}
@@ -209,6 +305,7 @@ export default function AdminDashboard() {
       {editing && (
         <ProjectForm
           initial={editing.id ? editing : null}
+          categories={projectCategories}
           onClose={() => setEditing(null)}
           onSave={async (data) => {
             if (data.id) {
@@ -217,6 +314,7 @@ export default function AdminDashboard() {
             } else {
               await addDoc(collection(db, "projects"), {
                 ...data,
+                order: projects.length,
                 createdAt: serverTimestamp(),
               });
             }

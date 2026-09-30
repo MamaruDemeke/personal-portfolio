@@ -1,9 +1,9 @@
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
-import { SOCIALS } from "../data/constants.js";
 import Icon from "./Icon.jsx";
 
 export default function Footer() {
-  const { profile } = useSiteContent();
+  const { profile, socials } = useSiteContent();
+  const socialList = socials || [];
 
   return (
     <footer className="relative overflow-hidden border-t border-white/5 py-10">
@@ -15,11 +15,11 @@ export default function Footer() {
         </p>
 
         <div className="flex gap-3">
-          {SOCIALS.map((s) => (
+          {socialList.map((s) => (
             <a
               key={s.label}
               href={s.href}
-              target="_blank"
+              target={s.href?.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
               aria-label={s.label}
               className="glass-card flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-all hover:-translate-y-0.5 hover:text-accent"

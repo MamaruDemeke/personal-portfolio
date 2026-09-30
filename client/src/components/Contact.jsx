@@ -7,7 +7,8 @@ import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
 export default function Contact() {
-  const { profile } = useSiteContent();
+  const { profile, contact } = useSiteContent();
+  const copy = contact || {};
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState({ state: "idle", msg: "" });
   const [sending, setSending] = useState(false);
@@ -37,7 +38,7 @@ export default function Contact() {
       });
       setStatus({
         state: "success",
-        msg: "Message sent! I'll get back to you soon.",
+        msg: copy.successMessage || "Message sent! I'll get back to you soon.",
       });
       setForm({ name: "", email: "", message: "" });
     } catch (err) {
@@ -55,9 +56,7 @@ export default function Contact() {
       <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
         <motion.div variants={fadeUp} className="space-y-5">
           <p className="max-w-md leading-relaxed text-slate-400">
-            My inbox is always open — whether you have a project in mind, a role
-            to discuss, or just want to say hi. I&apos;ll do my best to reply
-            within 24 hours.
+            {copy.intro}
           </p>
 
           <a
@@ -89,7 +88,8 @@ export default function Contact() {
                 Phone
               </span>
               <span className="block truncate text-sm text-slate-200">
-                {profile.phone} · {profile.phoneAlt}
+                {profile.phone}
+                {profile.phoneAlt ? ` · ${profile.phoneAlt}` : ""}
               </span>
             </span>
           </a>
@@ -184,7 +184,9 @@ export default function Contact() {
             disabled={sending}
             className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
-            {sending ? "Sending…" : "Send Message"}
+            {sending
+              ? "Sending…"
+              : copy.submitLabel || "Send Message"}
             <Icon name="send" className="h-4 w-4" />
           </button>
         </motion.form>

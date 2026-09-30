@@ -3,19 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
-const LINKS = [
-  { label: "About", href: "#about" },
-  { label: "Skills", href: "#skills" },
-  { label: "Experience", href: "#experience" },
-  { label: "Certificates", href: "#certificates" },
-  { label: "Projects", href: "#projects" },
-  { label: "Contact", href: "#contact" },
-];
-
 export default function Navbar() {
-  const { profile } = useSiteContent();
+  const { profile, navLinks } = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const links = (navLinks || []).filter((l) => l.visible !== false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -55,18 +48,20 @@ export default function Navbar() {
         </a>
 
         {/* Desktop */}
-        <ul className="hidden items-center gap-7 md:flex">
-          {LINKS.map((l) => (
-            <li key={l.href}>
-              <a
-                href={l.href}
-                className="relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-all after:duration-300 hover:text-accent hover:after:w-full"
-              >
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {links.length > 0 && (
+          <ul className="hidden items-center gap-7 md:flex">
+            {links.map((l) => (
+              <li key={l.href + l.label}>
+                <a
+                  href={l.href}
+                  className="relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-all after:duration-300 hover:text-accent hover:after:w-full"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="flex items-center gap-3">
           <a
@@ -75,13 +70,15 @@ export default function Navbar() {
           >
             Hire Me
           </a>
-          <button
-            className="text-slate-200 md:hidden"
-            onClick={() => setOpen((v) => !v)}
-            aria-label="Toggle menu"
-          >
-            <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
-          </button>
+          {links.length > 0 && (
+            <button
+              className="text-slate-200 md:hidden"
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
+              <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </nav>
 
@@ -95,8 +92,8 @@ export default function Navbar() {
             className="mx-auto mt-2 max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-obsidian/95 backdrop-blur-xl md:hidden"
           >
             <ul className="space-y-1 p-3">
-              {LINKS.map((l) => (
-                <li key={l.href}>
+              {links.map((l) => (
+                <li key={l.href + l.label}>
                   <a
                     href={l.href}
                     onClick={() => setOpen(false)}

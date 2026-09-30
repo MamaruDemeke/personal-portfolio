@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
 import useProjects from "../hooks/useProjects.js";
-import { PROJECT_CATEGORIES } from "../data/constants.js";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import ProjectModal from "./ProjectModal.jsx";
 import Icon from "./Icon.jsx";
 
@@ -22,35 +22,41 @@ function Placeholder({ title }) {
 
 export default function Projects() {
   const { projects, loading } = useProjects();
-  const [active, setActive] = useState("All");
+  const { projectCategories } = useSiteContent();
+  const categories = projectCategories || [];
+  const [active, setActive] = useState(categories[0] || "All");
   const [selected, setSelected] = useState(null);
 
   const filtered = useMemo(
     () =>
-      active === "All"
+      !categories.includes(active)
         ? projects
-        : projects.filter((p) => p.category === active),
-    [projects, active]
+        : active === "All"
+          ? projects
+          : projects.filter((p) => p.category === active),
+    [projects, active, categories]
   );
 
   return (
     <Section id="projects" eyebrow="projects" title="Selected" accent="work">
       {/* Category filter */}
-      <motion.div variants={fadeUp} className="mb-10 flex flex-wrap gap-2">
-        {PROJECT_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActive(cat)}
-            className={`rounded-full px-5 py-2 text-sm transition-all duration-300 ${
-              active === cat
-                ? "bg-accent font-semibold text-obsidian shadow-glow-accent"
-                : "border border-white/10 text-slate-300 hover:border-accent/50 hover:text-accent"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </motion.div>
+      {categories.length > 0 && (
+        <motion.div variants={fadeUp} className="mb-10 flex flex-wrap gap-2">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActive(cat)}
+              className={`rounded-full px-5 py-2 text-sm transition-all duration-300 ${
+                active === cat
+                  ? "bg-accent font-semibold text-obsidian shadow-glow-accent"
+                  : "border border-white/10 text-slate-300 hover:border-accent/50 hover:text-accent"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </motion.div>
+      )}
 
       {loading ? (
         <p className="font-mono text-sm text-slate-500">loading projects…</p>

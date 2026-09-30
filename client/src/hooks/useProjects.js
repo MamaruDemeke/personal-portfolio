@@ -4,6 +4,19 @@ import { db, firebaseReady } from "../firebase.js";
 import { SEED_PROJECTS } from "../data/constants.js";
 
 /**
+ * Admin-defined `order` wins; anything un-ordered falls back to newest-first.
+ * Sorting client-side avoids needing a composite Firestore index.
+ */
+export function sortProjects(list) {
+  return [...list].sort((a, b) => {
+    const ao = typeof a.order === "number" ? a.order : Number.MAX_SAFE_INTEGER;
+    const bo = typeof b.order === "number" ? b.order : Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0);
+  });
+}
+
+/**
  * Live-subscribes to the Firestore `projects` collection.
  * Falls back to SEED_PROJECTS while loading, on error, or when empty.
  * When Firebase is not configured, seed data is used directly.
@@ -28,7 +41,7 @@ export default function useProjects() {
           setProjects(SEED_PROJECTS);
           setIsLive(false);
         } else {
-          setProjects(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          setProjects(sortProjects(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
           setIsLive(true);
         }
         setLoading(false);
