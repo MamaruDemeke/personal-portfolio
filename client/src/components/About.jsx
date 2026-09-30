@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
-import { PROFILE, SKILL_CATEGORIES } from "../data/constants.js";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
 const STATS = [
@@ -10,6 +10,8 @@ const STATS = [
 ];
 
 export default function About() {
+  const { profile } = useSiteContent();
+
   return (
     <Section id="about" eyebrow="about" title="Behind the" accent="pixels">
       <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-4">
@@ -19,7 +21,7 @@ export default function About() {
           className="glass-card card-sheen p-7 md:col-span-2 lg:row-span-2"
         >
           <h3 className="mb-4 font-display text-2xl font-bold text-white">
-            Hi, I&apos;m {PROFILE.name} —{" "}
+            Hi, I&apos;m {profile.name} —{" "}
             <span className="serif-accent text-mint">
               a builder of things
             </span>
@@ -27,7 +29,7 @@ export default function About() {
           <div className="space-y-4 leading-relaxed text-slate-400">
             <p>
               A Computer Science graduate from Mekdela Amba University based in{" "}
-              {PROFILE.location}. I use technology to solve real-world
+              {profile.location}. I use technology to solve real-world
               challenges — through clean, responsive web development and
               compelling video storytelling.
             </p>
@@ -92,7 +94,7 @@ export default function About() {
           <Icon name="briefcase" className="h-6 w-6 text-accent" />
           <div className="mt-8">
             <p className="font-display text-lg font-bold text-white">
-              {PROFILE.location}
+              {profile.location}
             </p>
             <p className="mt-1 text-sm text-slate-400">
               Working remotely, worldwide
@@ -100,31 +102,26 @@ export default function About() {
           </div>
         </motion.div>
 
-        {/* Skills — spans full width */}
-        <motion.div
+        {/* Download CV card */}
+        <motion.a
           variants={fadeUp}
-          className="glass-card card-sheen p-7 md:col-span-3 lg:col-span-4"
+          href={profile.resumeUrl || "/resume.pdf"}
+          download
+          className="glass-card glass-card-hover card-sheen group flex flex-col justify-between p-6"
         >
-          <h3 className="mb-6 font-mono text-xs uppercase tracking-[0.25em] text-accent">
-            Toolkit
-          </h3>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {SKILL_CATEGORIES.map((cat) => (
-              <div key={cat.title}>
-                <p className="mb-3 text-sm font-semibold text-white">
-                  {cat.title}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {cat.skills.map((skill) => (
-                    <span key={skill} className="chip">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 text-accent transition-transform duration-300 group-hover:translate-y-0.5">
+            <Icon name="download" className="h-5 w-5" />
+          </span>
+          <div className="mt-8">
+            <p className="font-display text-lg font-bold text-white">
+              Download CV
+            </p>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400 transition-colors group-hover:text-accent">
+              Resume — PDF
+              <Icon name="arrow" className="h-4 w-4" />
+            </p>
           </div>
-        </motion.div>
+        </motion.a>
       </div>
     </Section>
   );

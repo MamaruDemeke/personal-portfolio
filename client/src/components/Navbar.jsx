@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PROFILE } from "../data/constants.js";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
 const LINKS = [
   { label: "About", href: "#about" },
+  { label: "Skills", href: "#skills" },
   { label: "Experience", href: "#experience" },
+  { label: "Certificates", href: "#certificates" },
   { label: "Projects", href: "#projects" },
   { label: "Contact", href: "#contact" },
 ];
 
 export default function Navbar() {
+  const { profile } = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -33,10 +36,22 @@ export default function Navbar() {
             : "border-transparent bg-transparent"
         }`}
       >
-        <a href="#home" className="font-mono text-lg font-bold text-white">
-          <span className="text-accent">{"<"}</span>
-          {PROFILE.brand}
-          <span className="text-accent">{"/>"}</span>
+        <a
+          href="#home"
+          className="flex items-center gap-2.5 font-mono text-lg font-bold text-white"
+        >
+          {profile.logoUrl && (
+            <img
+              src={profile.logoUrl}
+              alt={`${profile.name} logo`}
+              className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10"
+            />
+          )}
+          <span>
+            <span className="text-accent">{"<"}</span>
+            {profile.brand}
+            <span className="text-accent">{"/>"}</span>
+          </span>
         </a>
 
         {/* Desktop */}

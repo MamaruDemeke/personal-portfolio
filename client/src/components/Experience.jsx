@@ -1,13 +1,15 @@
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
-import { EXPERIENCE } from "../data/constants.js";
-import Icon from "./Icon.jsx";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
+import TechIcon from "./TechIcon.jsx";
 
 export default function Experience() {
+  const { experience } = useSiteContent();
+
   return (
     <Section id="experience" eyebrow="experience" title="Where I've" accent="worked">
       <div className="relative ml-3 space-y-8 border-l border-white/10 pl-8 md:ml-6">
-        {EXPERIENCE.map((job, i) => (
+        {experience.map((job, i) => (
           <motion.article
             key={`${job.company}-${job.period}`}
             variants={fadeUp}
@@ -39,9 +41,9 @@ export default function Experience() {
                 ))}
               </ul>
               <div className="flex flex-wrap items-center gap-2">
-                <Icon name="code" className="h-4 w-4 text-sage" />
                 {job.tech.map((t) => (
-                  <span key={t} className="chip-accent">
+                  <span key={t} className="chip-accent inline-flex items-center gap-1.5">
+                    <TechIcon name={t} />
                     {t}
                   </span>
                 ))}

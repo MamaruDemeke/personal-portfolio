@@ -6,6 +6,9 @@
   html {
     scroll-behavior: smooth;
   }
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
   body {
     @apply bg-obsidian text-slate-200 antialiased;
   }

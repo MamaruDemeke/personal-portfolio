@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import Section, { fadeUp } from "./Section.jsx";
-import { PROFILE } from "../data/constants.js";
+import { db } from "../firebase.js";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
-const API_URL = import.meta.env.VITE_API_URL || "";
-
 export default function Contact() {
+  const { profile } = useSiteContent();
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState({ state: "idle", msg: "" });
   const [sending, setSending] = useState(false);
@@ -15,23 +16,35 @@ export default function Contact() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (!db) {
+      setStatus({
+        state: "error",
+        msg: "Messaging is offline — Firebase is not configured on this deployment.",
+      });
+      return;
+    }
     setSending(true);
     setStatus({ state: "idle", msg: "" });
     try {
-      const res = await fetch(`${API_URL}/api/contact`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      // Real-time: written straight to Firestore — appears instantly in the
+      // /admin dashboard's Messages tab (no backend API needed).
+      await addDoc(collection(db, "messages"), {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        message: form.message.trim(),
+        read: false,
+        createdAt: serverTimestamp(),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Something went wrong.");
       setStatus({
         state: "success",
         msg: "Message sent! I'll get back to you soon.",
       });
       setForm({ name: "", email: "", message: "" });
     } catch (err) {
-      setStatus({ state: "error", msg: err.message });
+      setStatus({
+        state: "error",
+        msg: "Couldn't send your message. Please try again in a moment.",
+      });
     } finally {
       setSending(false);
     }
@@ -48,7 +61,7 @@ export default function Contact() {
           </p>
 
           <a
-            href={`mailto:${PROFILE.email}`}
+            href={`mailto:${profile.email}`}
             className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
@@ -59,13 +72,13 @@ export default function Contact() {
                 Email
               </span>
               <span className="block truncate text-sm text-slate-200">
-                {PROFILE.email}
+                {profile.email}
               </span>
             </span>
           </a>
 
           <a
-            href={`tel:${PROFILE.phone}`}
+            href={`tel:${profile.phone}`}
             className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
@@ -76,7 +89,7 @@ export default function Contact() {
                 Phone
               </span>
               <span className="block truncate text-sm text-slate-200">
-                {PROFILE.phone} · {PROFILE.phoneAlt}
+                {profile.phone} · {profile.phoneAlt}
               </span>
             </span>
           </a>
@@ -90,7 +103,7 @@ export default function Contact() {
                 Location
               </span>
               <span className="block text-sm text-slate-200">
-                {PROFILE.location}
+                {profile.location}
               </span>
             </span>
           </div>

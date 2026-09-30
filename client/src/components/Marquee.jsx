@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
-import { PROFILE, SKILL_CATEGORIES } from "../data/constants.js";
-
-const ITEMS = SKILL_CATEGORIES.flatMap((c) => c.skills);
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
+import TechIcon from "./TechIcon.jsx";
 
 export default function Marquee() {
-  const row = [...ITEMS, ...ITEMS];
+  const { skills } = useSiteContent();
+  const items = skills.flatMap((c) => c.skills);
+  const row = [...items, ...items];
+
   return (
     <div
       aria-hidden="true"
@@ -18,7 +20,10 @@ export default function Marquee() {
             key={`${item}-${i}`}
             className="flex items-center gap-10 whitespace-nowrap font-mono text-sm uppercase tracking-widest text-slate-500"
           >
-            {item}
+            <span className="flex items-center gap-2">
+              <TechIcon name={item} className="h-4 w-4" />
+              {item}
+            </span>
             <span className="text-accent/60">✦</span>
           </span>
         ))}

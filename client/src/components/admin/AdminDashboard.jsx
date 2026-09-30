@@ -12,12 +12,13 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import ProjectForm from "./ProjectForm.jsx";
+import ContentForm from "./ContentForm.jsx";
 import Icon from "../Icon.jsx";
 
-const TABS = ["Projects", "Messages"];
+const TABS = ["Content", "Projects", "Messages"];
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState("Projects");
+  const [tab, setTab] = useState("Content");
   const [projects, setProjects] = useState([]);
   const [messages, setMessages] = useState([]);
   const [editing, setEditing] = useState(null); // null | {} | project
@@ -87,6 +88,8 @@ export default function AdminDashboard() {
           {notice}
         </p>
       )}
+
+      {tab === "Content" && <ContentForm />}
 
       {tab === "Projects" && (
         <section>

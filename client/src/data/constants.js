@@ -10,7 +10,7 @@ export const PROFILE = {
   brand: "MD.",
   tagline:
     "Dedicated Computer Science graduate from Mekdela Amba University (CGPA 3.91, Exit Exam 78%) — I use technology to solve real-world challenges through web development and video editing.",
-  location: "South Wollo, Ethiopia",
+  location: "Bole, Addis Ababa",
   email: "mamardemeke1221@gmail.com",
   phone: "+251943467433",
   phoneAlt: "+251946049376",
@@ -69,6 +69,29 @@ export const EXPERIENCE = [
       "Quick learner with a proactive approach to identifying and resolving challenges.",
     ],
     tech: ["Video Editing", "Content Creation"],
+  },
+];
+
+/* Certificates — edit this list with YOUR real certificates.
+   Set `url` to the credential/verify link (leave "" to hide the link). */
+export const CERTIFICATES = [
+  {
+    title: "Web Development",
+    issuer: "Udemy",
+    year: "2024",
+    url: "",
+  },
+  {
+    title: "Responsive Web Design",
+    issuer: "freeCodeCamp",
+    year: "2024",
+    url: "",
+  },
+  {
+    title: "Video Editing",
+    issuer: "Coursera",
+    year: "2023",
+    url: "",
   },
 ];
 

@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
-import { PROFILE, SOCIALS } from "../data/constants.js";
+import { SOCIALS } from "../data/constants.js";
+import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 import { fadeUp, stagger } from "./Section.jsx";
 
 export default function Hero() {
+  const { profile } = useSiteContent();
+
   return (
     <section
       id="home"
@@ -36,7 +39,7 @@ export default function Hero() {
         aria-hidden="true"
         className="text-outline pointer-events-none absolute -bottom-10 left-1/2 z-0 -translate-x-1/2 select-none whitespace-nowrap font-display text-[22vw] font-extrabold leading-none opacity-40"
       >
-        {PROFILE.brand.replace(".", "")}
+        {(profile.brand || "MD").replace(".", "")}
       </span>
 
       <motion.div
@@ -55,7 +58,7 @@ export default function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
           </span>
-          {PROFILE.status}
+          {profile.status}
           <Icon
             name="arrow"
             className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
@@ -66,9 +69,9 @@ export default function Hero() {
           variants={fadeUp}
           className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-white md:text-7xl lg:text-8xl"
         >
-          {PROFILE.firstName}{" "}
+          {profile.firstName}{" "}
           <span className="serif-accent bg-gradient-to-r from-accent to-mint bg-clip-text pr-2 font-normal text-transparent">
-            {PROFILE.name.replace(PROFILE.firstName, "").trim()}
+            {profile.name.replace(profile.firstName, "").trim()}
           </span>
         </motion.h1>
 
@@ -89,7 +92,7 @@ export default function Hero() {
           variants={fadeUp}
           className="mx-auto mt-6 max-w-xl leading-relaxed text-slate-400"
         >
-          {PROFILE.tagline}
+          {profile.tagline}
         </motion.p>
 
         <motion.div
@@ -102,6 +105,14 @@ export default function Hero() {
           </a>
           <a href="#contact" className="btn-outline">
             Get In Touch
+          </a>
+          <a
+            href={profile.resumeUrl || "/resume.pdf"}
+            download
+            className="btn-outline"
+          >
+            Download CV
+            <Icon name="download" className="h-4 w-4" />
           </a>
         </motion.div>
 

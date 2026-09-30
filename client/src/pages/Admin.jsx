@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   signInWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { useAuth } from "../hooks/useAuth.js";
 import { auth } from "../firebase.js";
@@ -14,6 +15,8 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState("login"); // "login" | "reset"
+  const [resetSent, setResetSent] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -38,6 +41,32 @@ export default function Admin() {
     }
   };
 
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!auth) {
+      setError("Admin is disabled — Firebase is not configured on this deployment.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setResetSent(true);
+    } catch (err) {
+      setError(
+        err.code === "auth/user-not-found"
+          ? "No admin account exists with that email."
+          : err.code === "auth/invalid-email"
+            ? "Enter a valid email address."
+            : err.code === "auth/too-many-requests"
+              ? "Too many attempts. Try again later."
+              : err.message
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center font-mono text-slate-500">
@@ -49,13 +78,18 @@ export default function Admin() {
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center px-6">
-        <form onSubmit={handleLogin} className="glass-card w-full max-w-sm space-y-5 p-8">
+        <form
+          onSubmit={mode === "login" ? handleLogin : handleReset}
+          className="glass-card w-full max-w-sm space-y-5 p-8"
+        >
           <div className="text-center">
             <h1 className="font-mono text-2xl font-bold text-white">
               <span className="text-accent">admin</span>_
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              Restricted area — sign in to continue.
+              {mode === "login"
+                ? "Restricted area — sign in to continue."
+                : "Enter your admin email — we'll send a reset link."}
             </p>
           </div>
 
@@ -74,21 +108,30 @@ export default function Admin() {
               autoComplete="username"
             />
           </div>
-          <div>
-            <label htmlFor="admin-password" className="mb-1.5 block text-sm text-slate-300">
-              Password
-            </label>
-            <input
-              id="admin-password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field"
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </div>
+          {mode === "login" && (
+            <div>
+              <label htmlFor="admin-password" className="mb-1.5 block text-sm text-slate-300">
+                Password
+              </label>
+              <input
+                id="admin-password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-field"
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+            </div>
+          )}
+
+          {resetSent && mode === "reset" && (
+            <p className="rounded-lg bg-accent/10 px-4 py-2.5 text-sm text-accent">
+              Reset link sent to <strong>{email}</strong>. Check your inbox
+              (and spam folder) — the link opens a page to set a new password.
+            </p>
+          )}
 
           {error && (
             <p className="rounded-lg bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
@@ -101,14 +144,43 @@ export default function Admin() {
             disabled={busy}
             className="btn-primary w-full justify-center disabled:opacity-60"
           >
-            {busy ? "Signing in…" : "Sign In"}
+            {busy
+              ? "Working…"
+              : mode === "login"
+                ? "Sign In"
+                : "Send Reset Link"}
           </button>
-          <a
-            href="/"
-            className="block text-center text-sm text-slate-500 hover:text-accent"
-          >
-            ← Back to portfolio
-          </a>
+
+          <div className="flex items-center justify-between text-sm">
+            {mode === "login" ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("reset");
+                  setError("");
+                  setResetSent(false);
+                }}
+                className="text-slate-500 hover:text-accent"
+              >
+                Forgot password?
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                  setResetSent(false);
+                }}
+                className="text-slate-500 hover:text-accent"
+              >
+                ← Back to sign in
+              </button>
+            )}
+            <a href="/" className="text-slate-500 hover:text-accent">
+              Portfolio →
+            </a>
+          </div>
         </form>
       </div>
     );
