@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { db, storage } from "../../firebase.js";
 import { doc, setDoc } from "firebase/firestore";
 import {
   ref as storageRef,
+  uploadBytes,
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
@@ -35,13 +36,13 @@ export function Grid({ cols = 2, children }) {
 
 export function Field({ label, hint, children }) {
   return (
-    <label className="block">
+    <div>
       <span className="mb-1.5 block font-mono text-[10px] uppercase tracking-widest text-slate-500">
         {label}
       </span>
       {children}
       {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
-    </label>
+    </div>
   );
 }
 
@@ -149,34 +150,148 @@ export function toList(value) {
 
 /* ---------- file upload ---------- */
 
+/** Some browsers report an empty type; derive one from the extension so the
+    Firebase Storage rules (which match on contentType) don't reject the file. */
+const TYPE_BY_EXT = {
+  pdf: "application/pdf",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  svg: "image/svg+xml",
+  ico: "image/x-icon",
+};
+
+function resolveType(file) {
+  if (file.type) return file.type;
+  const ext = String(file.name || "")
+    .split(".")
+    .pop()
+    ?.toLowerCase();
+  return TYPE_BY_EXT[ext] || "application/octet-stream";
+}
+
+/** File extension that matches the contentType actually sent to Storage. */
+export function extFor(file) {
+  const t = resolveType(file);
+  if (t === "application/pdf") return "pdf";
+  if (t === "image/png") return "png";
+  if (t === "image/webp") return "webp";
+  if (t === "image/svg+xml") return "svg";
+  if (t === "image/gif") return "gif";
+  if (t === "image/x-icon") return "ico";
+  return "jpg";
+}
+
+/** Turns Firebase errors into something actionable. */
+export function explainUploadError(err) {
+  const code = err?.code || "";
+  if (code === "storage/unauthorized" || code === "storage/401-unauthorized") {
+    return "Storage rules blocked this upload. Run: firebase deploy --only storage (then firestore:rules).";
+  }
+  if (code === "storage/unauthenticated") {
+    return "Your admin session expired — sign out and back in, then retry.";
+  }
+  if (code === "storage/quota-exceeded") {
+    return "Upload failed: your Firebase Storage quota is full.";
+  }
+  if (code === "storage/canceled") return "Upload was canceled.";
+  if (code === "storage/retry-limit-exceeded") {
+    return "Upload failed after retries — check your connection.";
+  }
+  if (code === "storage/invalid-argument") {
+    return "Storage rejected the file type. Check that your CV is a PDF and images are PNG/JPG/WebP.";
+  }
+  if (code === "storage/unavailable") {
+    return "Storage is unreachable right now. Try again in a moment.";
+  }
+  return err?.message || "Upload failed.";
+}
+
 function useUploadTask() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
 
-  /** Resumable upload with a live percentage; returns the download URL. */
-  const start = (file, path) =>
-    new Promise((resolve, reject) => {
-      setUploading(true);
-      setProgress(0);
-      const task = uploadBytesResumable(storageRef(storage, path), file, {
-        contentType: file.type || "application/octet-stream",
+  /** Uploads a file and resolves with its download URL. */
+  const start = async (file, path) => {
+    if (!storage) {
+      throw new Error("Firebase Storage is not configured on this deployment.");
+    }
+    const ref = storageRef(storage, path);
+    const contentType = resolveType(file);
+    const meta = { contentType };
+
+    setUploading(true);
+    setProgress(0);
+    setError("");
+
+    const resumable = () =>
+      new Promise((resolve, reject) => {
+        let settled = false;
+        const watchdog = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          try {
+            task.cancel();
+          } catch {
+            /* already finished */
+          }
+          reject(new Error("stalled"));
+        }, 15000);
+
+        const done = (fn, val) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(watchdog);
+          fn(val);
+        };
+
+        const task = uploadBytesResumable(ref, file, meta);
+        task.on(
+          "state_changed",
+          (snap) =>
+            setProgress(
+              snap.totalBytes
+                ? Math.min(99, (snap.bytesTransferred / snap.totalBytes) * 100)
+                : 0
+            ),
+          (err) => done(reject, err),
+          async () => {
+            try {
+              done(resolve, await getDownloadURL(task.snapshot.ref));
+            } catch (err) {
+              done(reject, err);
+            }
+          }
+        );
       });
-      task.on(
-        "state_changed",
-        (snap) => setProgress((snap.bytesTransferred / snap.totalBytes) * 100),
-        (err) => {
-          setError(err.message);
-          setUploading(false);
-          reject(err);
-        },
-        () => {
-          getDownloadURL(task.snapshot.ref).then(resolve, reject).finally(() => {
-            setUploading(false);
-          });
-        }
-      );
-    });
+
+    /* Try the resumable session first so large files survive connection blips,
+       but fall back to a single-shot upload if the session stalls at 0%. */
+    try {
+      const url = await resumable();
+      setProgress(100);
+      setUploading(false);
+      return url;
+    } catch (err) {
+      const stalled = err?.message === "stalled";
+      if (!stalled) {
+        setUploading(false);
+        throw err;
+      }
+      try {
+        const snap = await uploadBytes(ref, file, meta);
+        setProgress(100);
+        setUploading(false);
+        return await getDownloadURL(snap.ref);
+      } catch (err2) {
+        setUploading(false);
+        throw err2;
+      }
+    }
+  };
 
   return { uploading, progress, error, setError, setUploading, start };
 }
@@ -196,15 +311,25 @@ export function UploadField({
   const { uploading, progress, error, setError, setUploading, start } =
     useUploadTask();
 
+  /* Holds the bar at 100% for a moment so a finished upload is visible instead
+     of the row snapping back to the idle state. */
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!done) return undefined;
+    const t = setTimeout(() => setDone(false), 1200);
+    return () => clearTimeout(t);
+  }, [done]);
+
   const handleFile = async (file) => {
     if (!file) return;
     setError("");
+    setDone(false);
 
-    if (kind === "image" && !file.type.startsWith("image/")) {
+    if (kind === "image" && file.type && !file.type.startsWith("image/")) {
       setError("Please choose an image file.");
       return;
     }
-    if (kind === "pdf" && file.type !== "application/pdf") {
+    if (kind === "pdf" && file.type && file.type !== "application/pdf") {
       setError("Please choose a PDF file.");
       return;
     }
@@ -218,10 +343,13 @@ export function UploadField({
       if (compress && file.type.startsWith("image/")) {
         payload = await compressImage(file);
       }
-      const url = await start(payload, storagePath(file));
+      const url = await start(payload, storagePath(payload));
+      setDone(true);
       onUploaded(url);
+      setError("");
     } catch (err) {
       setUploading(false);
+      setError(explainUploadError(err));
     }
   };
 
@@ -249,7 +377,7 @@ export function UploadField({
         </label>
         {uploading && (
           <span className="font-mono text-xs text-accent">
-            {Math.round(progress)}%
+            {done ? "done" : `${Math.round(progress)}%`}
           </span>
         )}
         {currentUrl && (
@@ -262,7 +390,7 @@ export function UploadField({
           </button>
         )}
       </div>
-      {uploading && (
+      {uploading && !done && (
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full bg-accent transition-[width]"
@@ -301,7 +429,7 @@ export function ImageUploadField({
   const handleFile = async (file) => {
     if (!file) return;
     setError("");
-    if (!file.type.startsWith("image/")) {
+    if (file.type && !file.type.startsWith("image/")) {
       setError("Please choose an image file.");
       return;
     }
@@ -316,10 +444,12 @@ export function ImageUploadField({
         setError("Still too large after compression - try a smaller image.");
         return;
       }
-      const url = await start(compressed, storagePath(file));
+      const url = await start(compressed, storagePath(compressed));
       onUploaded(url);
-    } catch {
+      setError("");
+    } catch (err) {
       setUploading(false);
+      setError(explainUploadError(err));
     }
   };
 
@@ -380,6 +510,11 @@ export function ImageUploadField({
             >
               remove image
             </button>
+          )}
+          {!currentUrl && !uploading && !error && (
+            <span className="mt-2 block font-mono text-xs text-slate-500">
+              no file uploaded yet
+            </span>
           )}
           {error && <span className="mt-1 block text-xs text-red-400">{error}</span>}
         </div>

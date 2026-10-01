@@ -5,6 +5,7 @@ import {
   TextArea,
   SelectInput,
   ImageUploadField,
+  extFor,
 } from "./fields.jsx";
 import Icon from "../Icon.jsx";
 
@@ -121,15 +122,7 @@ export default function ProjectForm({ initial, categories = [], onClose, onSave 
           aspect="aspect-video"
           maxMB={5}
           hint="Compressed in your browser before upload (max 5 MB)."
-          storagePath={(f) =>
-            `projects/cover-${Date.now()}.${
-              f.type === "image/png"
-                ? "png"
-                : f.type === "image/webp"
-                  ? "webp"
-                  : "jpg"
-            }`
-          }
+          storagePath={(f) => `projects/cover-${Date.now()}.${extFor(f)}`}
           onUploaded={set("imageUrl")}
           onCleared={() => set("imageUrl")("")}
         />

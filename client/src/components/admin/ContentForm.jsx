@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase.js";
 import { DEFAULT_CONTENT, mergeSiteContent } from "../../hooks/useSiteContent.jsx";
 import { saveSiteContent } from "./fields.jsx";
 import ProfileEditor from "./content/ProfileEditor.jsx";
+import FilesEditor from "./content/FilesEditor.jsx";
 import HeroEditor from "./content/HeroEditor.jsx";
 import AboutEditor from "./content/AboutEditor.jsx";
 import SkillsEditor from "./content/SkillsEditor.jsx";
@@ -18,6 +19,7 @@ const DRAFT_KEY = "portfolio-content-draft";
 
 const TABS = [
   { id: "profile", label: "Profile" },
+  { id: "files", label: "Files" },
   { id: "hero", label: "Hero" },
   { id: "about", label: "About" },
   { id: "skills", label: "Skills" },
@@ -101,6 +103,21 @@ export default function ContentForm() {
     }
   };
 
+  /* Uploads live in Firebase Storage, so the URL is persisted to Firestore the
+     moment it lands. Without this the file would sit in the bucket while the
+     site kept serving the old link until someone hit "Save & Publish". */
+  const persist = useCallback(async (next, message) => {
+    setContent(next);
+    try {
+      await saveSiteContent(next);
+      setPublished(next);
+      localStorage.removeItem(DRAFT_KEY);
+      setNotice(message || "File uploaded and published.");
+    } catch (err) {
+      setNotice(`Uploaded to Storage, but saving the link failed: ${err.message}`);
+    }
+  }, []);
+
   const onDiscard = () => {
     if (!window.confirm("Discard all unsaved changes and reload the published content?")) return;
     localStorage.removeItem(DRAFT_KEY);
@@ -148,6 +165,13 @@ export default function ContentForm() {
           update={(patch) => setContent((c) => ({ ...c, profile: { ...c.profile, ...patch } }))}
         />
       )}
+      {tab === "files" && (
+        <FilesEditor
+          content={content}
+          update={(patch) => setContent((c) => ({ ...c, profile: { ...c.profile, ...patch } }))}
+          persist={persist}
+        />
+      )}
       {tab === "hero" && (
         <HeroEditor
           content={content}
@@ -176,6 +200,7 @@ export default function ContentForm() {
         <CertificatesEditor
           content={content}
           update={(certificates) => setContent((c) => ({ ...c, certificates }))}
+          persist={persist}
         />
       )}
       {tab === "socials" && (

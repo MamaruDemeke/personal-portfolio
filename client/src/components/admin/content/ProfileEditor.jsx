@@ -1,12 +1,4 @@
-import {
-  Card,
-  Grid,
-  TextInput,
-  TextArea,
-  UploadField,
-  ImageUploadField,
-  stamp,
-} from "../fields.jsx";
+import { Card, Grid, TextInput, TextArea } from "../fields.jsx";
 
 export default function ProfileEditor({ content, update }) {
   const p = content.profile;
@@ -82,48 +74,12 @@ export default function ProfileEditor({ content, update }) {
             onChange={(v) => update({ phoneAlt: v })}
           />
         </Grid>
-      </Card>
-
-      <Card>
-        <h4 className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
-          Files
-        </h4>
-
-        <UploadField
-          label="CV / Resume"
-          kind="pdf"
-          accept="application/pdf"
-          maxMB={10}
-          hint="PDF only — this file backs the Download CV buttons."
-          currentUrl={p.resumeUrl}
-          storagePath={() => `cv/resume-${stamp("pdf")}`}
-          onUploaded={(url) => update({ resumeUrl: url })}
-          onCleared={() => update({ resumeUrl: "" })}
-        />
         <TextInput
-          label="…or paste a CV link"
-          value={p.resumeUrl}
-          onChange={(v) => update({ resumeUrl: v })}
-          hint="Overrides the uploaded file if you set an external link."
-        />
-
-        <ImageUploadField
-          label="Logo / avatar"
-          currentUrl={p.logoUrl}
-          storagePath={(f) => `profile/logo-${stamp(f.type === "image/png" ? "png" : "jpg")}`}
-          onUploaded={(url) => update({ logoUrl: url })}
-          onCleared={() => update({ logoUrl: "" })}
-          hint="Shown in the navbar. Square images work best."
-        />
-
-        <ImageUploadField
-          label="Favicon"
-          currentUrl={p.faviconUrl}
-          aspect="aspect-square"
-          storagePath={(f) => `profile/favicon-${stamp(f.type === "image/png" ? "png" : "jpg")}`}
-          onUploaded={(url) => update({ faviconUrl: url })}
-          onCleared={() => update({ faviconUrl: "" })}
-          hint="Small square image shown in the browser tab."
+          label="Public site link"
+          value={p.siteUrl || ""}
+          onChange={(v) => update({ siteUrl: v })}
+          placeholder="https://your-site.vercel.app"
+          hint="Where the site is deployed — used for share links. Manage it under the Files tab."
         />
       </Card>
     </div>

@@ -1,9 +1,20 @@
-import { Card, Grid, TextInput, UploadField, safeSlug } from "../fields.jsx";
+import { Card, Grid, TextInput, UploadField, safeSlug, extFor } from "../fields.jsx";
 
 const EMPTY = { title: "", issuer: "", year: "", url: "", fileUrl: "" };
 
-export default function CertificatesEditor({ content, update }) {
+export default function CertificatesEditor({ content, update, persist }) {
   const certs = content.certificates || [];
+
+  /** Publishes straight to Firestore so the file link survives without the
+      admin having to press "Save & Publish Changes" afterwards. */
+  const storeFile = (i, url) => {
+    if (!persist) return patch(i, "fileUrl", url);
+    const next = certs.map((c, idx) => (idx === i ? { ...c, fileUrl: url } : c));
+    persist(
+      { ...content, certificates: next },
+      url ? "Certificate uploaded and published." : "Certificate link cleared."
+    );
+  };
 
   const add = () => update([...certs, { ...EMPTY }]);
   const remove = (i) => update(certs.filter((_, idx) => idx !== i));
@@ -105,18 +116,10 @@ export default function CertificatesEditor({ content, update }) {
             hint="PDF or image, up to 10 MB. Images are compressed first."
             currentUrl={cert.fileUrl}
             storagePath={(f) =>
-              `certificates/${safeSlug(cert.title) || "certificate"}-${Date.now()}.${
-                f.type === "application/pdf"
-                  ? "pdf"
-                  : f.type === "image/png"
-                    ? "png"
-                    : f.type === "image/webp"
-                      ? "webp"
-                      : "jpg"
-              }`
+              `certificates/${safeSlug(cert.title) || "certificate"}-${Date.now()}.${extFor(f)}`
             }
-            onUploaded={(url) => patch(i, "fileUrl", url)}
-            onCleared={() => patch(i, "fileUrl", "")}
+            onUploaded={(url) => storeFile(i, url)}
+            onCleared={() => storeFile(i, "")}
           />
 
           {cert.fileUrl && /\.pdf($|\?)/i.test(cert.fileUrl) && (

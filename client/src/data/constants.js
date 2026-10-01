@@ -20,6 +20,9 @@ export const PROFILE = {
   status: "Open to new opportunities",
   logoUrl: "",
   faviconUrl: "",
+  /* Public URL of the deployed site (Vercel, Firebase Hosting, or any domain).
+     Editable in the admin so share/preview links never point at a stale host. */
+  siteUrl: "https://personal-portfolio-chi-topaz-33.vercel.app",
 };
 
 /* Hero section — headline roles, CTA labels and targets */
