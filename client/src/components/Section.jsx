@@ -19,6 +19,26 @@ export const stagger = {
  * Section wrapper. Headings and visibility come from the editable
  * `sections` map in site content; the props are only fallbacks.
  */
+/**
+ * Each section gets its own colour identity so the page reads as a sequence of
+ * distinct zones rather than one flat green page. Colours are passed as CSS
+ * custom properties so the classes stay static and Tailwind can still purge.
+ */
+export const SECTION_HUES = {
+  hero: ["#10B981", "#22D3EE"],
+  about: ["#22D3EE", "#A78BFA"],
+  skills: ["#A78BFA", "#FB7185"],
+  experience: ["#FBBF24", "#FB7185"],
+  projects: ["#38BDF8", "#A78BFA"],
+  certificates: ["#FB7185", "#A78BFA"],
+  contact: ["#A3E635", "#22D3EE"],
+};
+
+function hueStyle(id) {
+  const [a, b] = SECTION_HUES[id] || SECTION_HUES.hero;
+  return { "--hue-a": a, "--hue-b": b, "--hue": a };
+}
+
 export default function Section({
   id,
   eyebrow,
@@ -37,12 +57,17 @@ export default function Section({
   const a = meta.accent ?? accent;
 
   return (
-    <section id={id} className={`mx-auto max-w-6xl px-6 py-28 ${className}`}>
+    <section
+      id={id}
+      style={hueStyle(id)}
+      className={`relative mx-auto max-w-6xl px-6 py-28 ${className}`}
+    >
       <motion.div
         variants={stagger}
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
+        className="relative z-10"
       >
         {e && <motion.p variants={fadeUp} className="section-title">{e}</motion.p>}
         <motion.h2
@@ -51,9 +76,7 @@ export default function Section({
         >
           {t}{" "}
           {a && (
-            <span className="serif-accent bg-gradient-to-r from-accent to-mint bg-clip-text pr-2 font-normal text-transparent">
-              {a}
-            </span>
+            <span className="serif-accent grad-text pr-2 font-normal">{a}</span>
           )}
         </motion.h2>
         {children}

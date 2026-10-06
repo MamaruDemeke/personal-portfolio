@@ -43,30 +43,43 @@ export default function Navbar() {
           <span>
             <span className="text-accent">{"<"}</span>
             {profile.brand}
-            <span className="text-accent">{"/>"}</span>
+            <span className="text-cyan">{"/>"}</span>
           </span>
         </a>
 
         {/* Desktop */}
         {links.length > 0 && (
           <ul className="hidden items-center gap-7 md:flex">
-            {links.map((l) => (
-              <li key={l.href + l.label}>
-                <a
-                  href={l.href}
-                  className="relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-accent after:transition-all after:duration-300 hover:text-accent hover:after:w-full"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
+            {links.map((l, i) => {
+              const hue = ["#A3E635", "#22D3EE", "#38BDF8", "#A78BFA", "#FB7185"][
+                i % 5
+              ];
+              return (
+                <li key={l.href + l.label}>
+                  <a
+                    href={l.href}
+                    className="nav-link relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:transition-all after:duration-300 hover:after:w-full"
+                    style={{ color: "#cbd5e1" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = hue;
+                      e.currentTarget.style.setProperty("--hue", hue);
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#cbd5e1";
+                    }}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
 
         <div className="flex items-center gap-3">
           <a
             href="#contact"
-            className="hidden rounded-full bg-accent px-4 py-1.5 text-sm font-semibold text-obsidian transition-all hover:bg-mint hover:shadow-glow-accent md:inline-flex"
+            className="hidden rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-4 py-1.5 text-sm font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent md:inline-flex"
           >
             Hire Me
           </a>
@@ -92,17 +105,31 @@ export default function Navbar() {
             className="mx-auto mt-2 max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-obsidian/95 backdrop-blur-xl md:hidden"
           >
             <ul className="space-y-1 p-3">
-              {links.map((l) => (
-                <li key={l.href + l.label}>
-                  <a
-                    href={l.href}
-                    onClick={() => setOpen(false)}
-                    className="block rounded-xl px-4 py-2.5 text-slate-300 hover:bg-surface hover:text-accent"
-                  >
-                    {l.label}
-                  </a>
-                </li>
-              ))}
+              {links.map((l, i) => {
+                const hue = ["#A3E635", "#22D3EE", "#38BDF8", "#A78BFA", "#FB7185"][
+                  i % 5
+                ];
+                return (
+                  <li key={l.href + l.label}>
+                    <a
+                      href={l.href}
+                      onClick={() => setOpen(false)}
+                      className="block rounded-xl border-l-2 px-4 py-2.5 text-slate-300 transition-colors hover:bg-surface"
+                      style={{ borderColor: `${hue}00` }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = hue;
+                        e.currentTarget.style.borderColor = hue;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "#cbd5e1";
+                        e.currentTarget.style.borderColor = `${hue}00`;
+                      }}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </motion.div>
         )}

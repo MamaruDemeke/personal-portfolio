@@ -57,10 +57,20 @@ const TECH = {
   writing: { Icon: FaPenNib, color: "#E2E8F0" },
 };
 
-export default function TechIcon({ name, className = "h-3.5 w-3.5" }) {
+export default function TechIcon({
+  name,
+  className = "h-3.5 w-3.5",
+  color: colorOverride,
+}) {
   const key = String(name || "").toLowerCase().trim();
   const match = TECH[key];
   if (!match) return null;
   const { Icon, color } = match;
-  return <Icon className={className} style={{ color }} aria-hidden="true" />;
+  return (
+    <Icon
+      className={className}
+      style={{ color: colorOverride || color }}
+      aria-hidden="true"
+    />
+  );
 }

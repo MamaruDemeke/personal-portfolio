@@ -61,9 +61,10 @@ export default function Contact() {
 
           <a
             href={`mailto:${profile.email}`}
-            className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
+            style={{ "--hue": "#FBBF24", "--hue-a": "#FBBF24", "--hue-b": "#FB7185" }}
+            className="hue-card flex items-center gap-4 p-4"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/15 text-amber">
               <Icon name="mail" className="h-5 w-5" />
             </span>
             <span className="min-w-0">
@@ -78,9 +79,10 @@ export default function Contact() {
 
           <a
             href={`tel:${profile.phone}`}
-            className="glass-card glass-card-hover card-sheen flex items-center gap-4 p-4"
+            style={{ "--hue": "#A78BFA", "--hue-a": "#A78BFA", "--hue-b": "#FB7185" }}
+            className="hue-card flex items-center gap-4 p-4"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet/15 text-violet">
               <Icon name="phone" className="h-5 w-5" />
             </span>
             <span className="min-w-0">
@@ -94,8 +96,11 @@ export default function Contact() {
             </span>
           </a>
 
-          <div className="glass-card flex items-center gap-4 p-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+          <div
+            style={{ "--hue": "#22D3EE", "--hue-a": "#22D3EE", "--hue-b": "#38BDF8" }}
+            className="hue-card flex items-center gap-4 p-4"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cyan/15 text-cyan">
               <Icon name="pin" className="h-5 w-5" />
             </span>
             <span>
@@ -112,7 +117,8 @@ export default function Contact() {
         <motion.form
           variants={fadeUp}
           onSubmit={onSubmit}
-          className="glass-card card-sheen space-y-4 p-7"
+          style={{ "--hue": "#A3E635", "--hue-a": "#A3E635", "--hue-b": "#22D3EE" }}
+          className="hue-card space-y-4 p-7"
           noValidate
         >
           <div className="grid gap-4 sm:grid-cols-2">
@@ -169,11 +175,12 @@ export default function Contact() {
           {status.state !== "idle" && (
             <p
               role="status"
-              className={`rounded-lg px-4 py-2.5 text-sm ${
+              className="rounded-lg px-4 py-2.5 text-sm"
+              style={
                 status.state === "success"
-                  ? "bg-accent/10 text-accent"
-                  : "bg-red-500/10 text-red-400"
-              }`}
+                  ? { background: "#10B9811F", color: "#6EE7B7" }
+                  : { background: "#EF44441F", color: "#FCA5A5" }
+              }
             >
               {status.msg}
             </p>
@@ -182,7 +189,7 @@ export default function Contact() {
           <button
             type="submit"
             disabled={sending}
-            className="btn-primary w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="btn-primary w-full justify-center bg-gradient-to-r from-lime via-accent to-cyan disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {sending
               ? "Sending…"

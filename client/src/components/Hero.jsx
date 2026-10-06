@@ -13,23 +13,10 @@ export default function Hero() {
       id="home"
       className="grain relative flex min-h-screen items-center justify-center overflow-hidden px-6"
     >
-      {/* Atmosphere: aurora glows + grid */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-40 left-1/2 h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-accent/10 blur-[160px]"
-      />
-      <motion.div
-        aria-hidden="true"
-        animate={{ x: [0, 40, 0], y: [0, -30, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute right-[8%] top-[20%] h-80 w-80 rounded-full bg-mint/8 blur-[120px]"
-      />
-      <motion.div
-        aria-hidden="true"
-        animate={{ x: [0, -50, 0], y: [0, 30, 0] }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-[10%] left-[5%] h-72 w-72 rounded-full bg-sage/10 blur-[120px]"
-      />
+      {/* Atmosphere: coloured aurora glows + grid */}
+      <div className="orb -top-48 left-1/2 h-[520px] w-[880px] -translate-x-1/2 animate-drift bg-accent/25" />
+      <div className="orb right-[4%] top-[16%] h-80 w-80 animate-drift bg-violet/25 [animation-delay:-7s]" />
+      <div className="orb bottom-[6%] left-[4%] h-72 w-72 animate-drift bg-cyan/25 [animation-delay:-14s]" />
       <div
         aria-hidden="true"
         className="grid-lines pointer-events-none absolute inset-0"
@@ -38,7 +25,7 @@ export default function Hero() {
       {/* Oversized watermark */}
       <span
         aria-hidden="true"
-        className="text-outline pointer-events-none absolute -bottom-10 left-1/2 z-0 -translate-x-1/2 select-none whitespace-nowrap font-display text-[22vw] font-extrabold leading-none opacity-40"
+        className="pointer-events-none absolute -bottom-10 left-1/2 z-0 -translate-x-1/2 select-none whitespace-nowrap bg-gradient-to-b from-white/12 to-transparent bg-clip-text font-display text-[22vw] font-extrabold leading-none text-transparent opacity-60"
       >
         {(profile.brand || "MD").replace(".", "")}
       </span>
@@ -73,7 +60,7 @@ export default function Hero() {
           className="font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-white md:text-7xl lg:text-8xl"
         >
           {profile.firstName}{" "}
-          <span className="serif-accent bg-gradient-to-r from-accent to-mint bg-clip-text pr-2 font-normal text-transparent">
+          <span className="serif-accent bg-gradient-to-r from-accent via-cyan to-violet bg-clip-text pr-2 font-normal text-transparent">
             {profile.name.replace(profile.firstName, "").trim()}
           </span>
         </motion.h1>
@@ -83,14 +70,20 @@ export default function Hero() {
             variants={fadeUp}
             className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-lg text-slate-400 md:text-xl"
           >
-            {roles.map((role, i) => (
-              <span key={role} className="flex items-center gap-3">
-                {i > 0 && <span className="text-slate-600">/</span>}
-                <span className="font-mono text-sm uppercase tracking-[0.3em] text-accent">
-                  {role}
+            {roles.map((role, i) => {
+              const hue = ["#10B981", "#22D3EE", "#A78BFA", "#FBBF24"][i % 4];
+              return (
+                <span key={role} className="flex items-center gap-3">
+                  {i > 0 && <span className="text-slate-600">/</span>}
+                  <span
+                    className="font-mono text-sm uppercase tracking-[0.3em]"
+                    style={{ color: hue }}
+                  >
+                    {role}
+                  </span>
                 </span>
-              </span>
-            ))}
+              );
+            })}
           </motion.p>
         )}
 
@@ -129,19 +122,40 @@ export default function Hero() {
             variants={fadeUp}
             className="mt-10 flex items-center justify-center gap-5"
           >
-            {socialList.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target={s.href?.startsWith("http") ? "_blank" : undefined}
-                rel="noreferrer"
-                aria-label={s.label}
-                title={s.label}
-                className="glass-card flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition-all duration-300 hover:-translate-y-1 hover:text-accent hover:shadow-glow-accent"
-              >
-                <Icon name={s.icon} className="h-5 w-5" />
-              </a>
-            ))}
+            {socialList.map((s, i) => {
+              const hue = [
+                "#10B981",
+                "#22D3EE",
+                "#A78BFA",
+                "#FB7185",
+                "#FBBF24",
+                "#38BDF8",
+              ][i % 6];
+              return (
+                <a
+                  key={s.label}
+                  href={s.href}
+                  target={s.href?.startsWith("http") ? "_blank" : undefined}
+                  rel="noreferrer"
+                  aria-label={s.label}
+                  title={s.label}
+                  className="glass-card flex h-11 w-11 items-center justify-center rounded-full text-slate-400 transition-all duration-300 hover:-translate-y-1"
+                  style={{ "--hue": hue }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = hue;
+                    e.currentTarget.style.boxShadow = `0 0 22px ${hue}66`;
+                    e.currentTarget.style.borderColor = `${hue}80`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "";
+                    e.currentTarget.style.boxShadow = "";
+                    e.currentTarget.style.borderColor = "";
+                  }}
+                >
+                  <Icon name={s.icon} className="h-5 w-5" />
+                </a>
+              );
+            })}
           </motion.div>
         )}
       </motion.div>
