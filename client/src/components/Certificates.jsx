@@ -41,7 +41,7 @@ export default function Certificates() {
 
   return (
     <Section id="certificates" eyebrow="certificates" title="Certified" accent="learning">
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {certificates.map((cert, i) => {
           const [a, b] = HUES[i % HUES.length];
           return (
@@ -49,9 +49,9 @@ export default function Certificates() {
               key={`${cert.title}-${cert.issuer}-${i}`}
               variants={fadeUp}
               style={{ "--hue": a, "--hue-a": a, "--hue-b": b }}
-              className="hue-card flex flex-col p-7"
+              className="hue-card flex flex-col p-3 sm:p-6"
             >
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-3 flex items-center justify-between sm:mb-4">
                 <span
                   className="flex h-11 w-11 items-center justify-center rounded-full"
                   style={{ background: `${a}1F`, color: a }}

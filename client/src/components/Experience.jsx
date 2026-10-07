@@ -15,7 +15,7 @@ export default function Experience() {
 
   return (
     <Section id="experience" eyebrow="experience" title="Where I've" accent="worked">
-      <div className="relative ml-3 space-y-8 border-l border-white/10 pl-8 md:ml-6">
+      <div className="relative ml-3 space-y-5 border-l border-white/10 pl-4 sm:pl-6 md:ml-6">
         {experience.map((job, i) => {
           const [a, b] = HUES[i % HUES.length];
           return (
@@ -31,7 +31,7 @@ export default function Experience() {
                 style={{ borderColor: a }}
               />
 
-              <div className="hue-card p-7">
+              <div className="hue-card p-3 sm:p-6">
                 <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="font-display text-xl font-bold text-white">
                     <span className="mr-3 font-mono text-sm font-medium" style={{ color: a }}>
@@ -49,8 +49,8 @@ export default function Experience() {
                     {job.period}
                   </span>
                 </div>
-                <p className="mb-4 text-sm text-slate-400">{job.summary}</p>
-                <ul className="mb-5 space-y-2">
+                <p className="mb-3 text-sm text-slate-400">{job.summary}</p>
+                <ul className="mb-4 space-y-2">
                   {job.highlights.map((h) => (
                     <li key={h} className="flex gap-3 text-sm text-slate-300">
                       <span className="mt-0.5 font-mono" style={{ color: a }}>

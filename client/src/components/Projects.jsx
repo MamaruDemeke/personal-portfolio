@@ -58,7 +58,7 @@ export default function Projects() {
     <Section id="projects" eyebrow="projects" title="Selected" accent="work">
       {/* Category filter */}
       {categories.length > 0 && (
-        <motion.div variants={fadeUp} className="mb-10 flex flex-wrap gap-2">
+        <motion.div variants={fadeUp} className="mb-7 flex flex-wrap gap-2">
           {categories.map((cat, i) => {
             const hue = ["#38BDF8", "#A78BFA", "#10B981", "#FBBF24", "#FB7185"][
               i % 5
@@ -105,7 +105,7 @@ export default function Projects() {
       {loading ? (
         <p className="font-mono text-sm text-slate-500">loading projects…</p>
       ) : (
-        <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div layout className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {filtered.map((p, idx) => {
               const [hueA, hueB] = CARD_HUES[idx % CARD_HUES.length];
@@ -126,7 +126,7 @@ export default function Projects() {
                       <img
                         src={p.imageUrl}
                         alt={p.title}
-                        className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-48"
                         loading="lazy"
                       />
                     ) : (
@@ -147,7 +147,7 @@ export default function Projects() {
                       }}
                     />
                   </div>
-                  <div className="p-6">
+                  <div className="p-3 sm:p-6">
                     <div className="mb-2 flex items-center justify-between">
                       <span
                         className="font-mono text-xs uppercase tracking-widest"

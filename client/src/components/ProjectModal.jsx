@@ -38,7 +38,7 @@ export default function ProjectModal({ project, onClose }) {
               "--hue-a": project.hue || "#A78BFA",
               "--hue-b": "#22D3EE",
             }}
-            className="hue-card relative max-h-[85vh] w-full max-w-2xl overflow-y-auto p-8"
+            className="hue-card relative max-h-[85vh] w-full max-w-2xl overflow-y-auto p-4 sm:p-8"
           >
             <button
               onClick={onClose}
@@ -52,7 +52,7 @@ export default function ProjectModal({ project, onClose }) {
               <img
                 src={project.imageUrl}
                 alt={project.title}
-                className="mb-6 h-56 w-full rounded-xl object-cover"
+                className="mb-4 h-44 w-full rounded-xl object-cover sm:h-56"
               />
             )}
 
@@ -62,7 +62,7 @@ export default function ProjectModal({ project, onClose }) {
             >
               {project.category}
             </span>
-            <h3 className="mt-1 text-2xl font-bold text-white">{project.title}</h3>
+            <h3 className="mt-1 text-xl font-bold text-white sm:text-2xl">{project.title}</h3>
 
             <p className="mt-4 whitespace-pre-line text-slate-300">
               {project.description}
@@ -85,7 +85,7 @@ export default function ProjectModal({ project, onClose }) {
             </div>
 
             {project.liveUrl || project.repoUrl ? (
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-6 flex flex-wrap gap-4">
                 {project.liveUrl && (
                   <a
                     href={project.liveUrl}
@@ -108,7 +108,7 @@ export default function ProjectModal({ project, onClose }) {
                 )}
               </div>
             ) : (
-              <p className="mt-8 font-mono text-xs uppercase tracking-widest text-slate-600">
+              <p className="mt-6 font-mono text-xs uppercase tracking-widest text-slate-600">
                 Links coming soon
               </p>
             )}

@@ -60,7 +60,7 @@ export default function Section({
     <section
       id={id}
       style={hueStyle(id)}
-      className={`relative mx-auto max-w-6xl px-6 py-28 ${className}`}
+      className={`relative mx-auto max-w-6xl px-5 py-8 sm:px-6 sm:py-14 ${className}`}
     >
       <motion.div
         variants={stagger}
@@ -72,7 +72,7 @@ export default function Section({
         {e && <motion.p variants={fadeUp} className="section-title">{e}</motion.p>}
         <motion.h2
           variants={fadeUp}
-          className="mb-14 font-display text-4xl font-extrabold tracking-tight text-white md:text-5xl"
+          className="mb-8 font-display text-2xl font-extrabold tracking-tight text-white sm:mb-12 md:text-4xl"
         >
           {t}{" "}
           {a && (

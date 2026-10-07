@@ -15,14 +15,14 @@ export default function About() {
 
   return (
     <Section id="about" eyebrow="about" title="Behind the" accent="pixels">
-      <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4">
         {/* Bio — spans 2 rows on desktop */}
         <motion.div
           variants={fadeUp}
           style={{ "--hue": "#A78BFA", "--hue-a": "#A78BFA", "--hue-b": "#22D3EE" }}
-          className="hue-card ring-hue p-7 md:col-span-2 lg:row-span-2"
+          className="hue-card ring-hue p-3 sm:p-6 md:col-span-2 lg:row-span-2"
         >
-          <h3 className="mb-4 font-display text-2xl font-bold text-white">
+          <h3 className="mb-2 font-display text-xl font-bold text-white sm:text-2xl">
             {a.greeting} {profile.name} —{" "}
             <span className="serif-accent grad-text">{a.headingAccent}</span>
           </h3>
@@ -45,7 +45,7 @@ export default function About() {
                 <div
                   key={s.label}
                   style={{ "--hue": hue, "--hue-a": hue, "--hue-b": hue }}
-                  className="hue-card flex flex-col items-center justify-center p-5 text-center lg:flex-row lg:justify-between lg:px-7 lg:text-left"
+                  className="hue-card flex flex-col items-center justify-center p-4 text-center lg:flex-row lg:justify-between lg:px-7 lg:text-left"
                 >
                   <span
                     className="grad-text font-display text-3xl font-extrabold"
@@ -67,14 +67,14 @@ export default function About() {
           <motion.div
             variants={fadeUp}
             style={{ "--hue": "#10B981", "--hue-a": "#10B981", "--hue-b": "#A3E635" }}
-            className="hue-card flex flex-col justify-between p-6 md:col-span-1"
+            className="hue-card flex flex-col justify-between p-3 sm:p-6 md:col-span-1"
           >
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-accent" />
             </span>
-            <div className="mt-8">
-              <p className="font-display text-lg font-bold text-white">
+            <div className="mt-6">
+              <p className="font-display text-base font-bold text-white sm:text-lg">
                 {a.availability?.title}
               </p>
               <p className="mt-1 text-sm text-slate-400">
@@ -88,11 +88,11 @@ export default function About() {
         <motion.div
           variants={fadeUp}
           style={{ "--hue": "#22D3EE", "--hue-a": "#22D3EE", "--hue-b": "#38BDF8" }}
-          className="hue-card flex flex-col justify-between p-6"
+          className="hue-card flex flex-col justify-between p-3 sm:p-6"
         >
           <Icon name="briefcase" className="h-6 w-6 text-cyan" />
-          <div className="mt-8">
-            <p className="font-display text-lg font-bold text-white">
+          <div className="mt-6">
+            <p className="font-display text-base font-bold text-white sm:text-lg">
               {profile.location}
             </p>
             <p className="mt-1 text-sm text-slate-400">{a.locationNote}</p>
@@ -106,13 +106,13 @@ export default function About() {
             href={resumeHref}
             download={profile.resumeFile?.name || "resume"}
             style={{ "--hue": "#A78BFA", "--hue-a": "#A78BFA", "--hue-b": "#FB7185" }}
-            className="hue-card group flex flex-col justify-between p-6"
+            className="hue-card group flex flex-col justify-between p-3 sm:p-6"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-violet/15 text-violet transition-transform duration-300 group-hover:-translate-y-0.5">
               <Icon name="download" className="h-5 w-5" />
             </span>
-            <div className="mt-8">
-              <p className="font-display text-lg font-bold text-white">
+            <div className="mt-6">
+              <p className="font-display text-base font-bold text-white sm:text-lg">
                 Download CV
               </p>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400 transition-colors group-hover:text-violet">

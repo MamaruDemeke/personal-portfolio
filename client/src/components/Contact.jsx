@@ -53,8 +53,8 @@ export default function Contact() {
 
   return (
     <Section id="contact" eyebrow="contact" title="Let's build" accent="something">
-      <div className="grid gap-12 lg:grid-cols-[1fr_1.2fr]">
-        <motion.div variants={fadeUp} className="space-y-5">
+      <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+        <motion.div variants={fadeUp} className="space-y-3 sm:space-y-4">
           <p className="max-w-md leading-relaxed text-slate-400">
             {copy.intro}
           </p>
@@ -118,7 +118,7 @@ export default function Contact() {
           variants={fadeUp}
           onSubmit={onSubmit}
           style={{ "--hue": "#A3E635", "--hue-a": "#A3E635", "--hue-b": "#22D3EE" }}
-          className="hue-card space-y-4 p-7"
+          className="hue-card space-y-3 p-3 sm:space-y-4 sm:p-6"
           noValidate
         >
           <div className="grid gap-4 sm:grid-cols-2">

@@ -5,6 +5,27 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    font-size: 16px;
+  }
+  /* Proportionally compact everything on small phones (all rem-based sizes). */
+  @media (max-width: 479px) {
+    html {
+      font-size: 12.5px;
+    }
+  }
+  @media (min-width: 480px) and (max-width: 639px) {
+    html {
+      font-size: 13.5px;
+    }
+  }
+  /* Tighter line-height on small screens. */
+  @media (max-width: 639px) {
+    .leading-relaxed {
+      line-height: 1.45;
+    }
+    .leading-normal {
+      line-height: 1.35;
+    }
   }
   section[id] {
     scroll-margin-top: 6rem;

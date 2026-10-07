@@ -44,7 +44,7 @@ export default function Hero() {
           <motion.a
             href="#contact"
             variants={fadeUp}
-            className="glass-card group mb-10 inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-sm text-sage"
+            className="glass-card group mb-8 inline-flex items-center gap-2.5 rounded-full px-5 py-2 text-sm text-sage"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
@@ -71,7 +71,7 @@ export default function Hero() {
         {roles.length > 0 && (
           <motion.p
             variants={fadeUp}
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-lg text-slate-400 md:text-xl"
+            className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-lg text-slate-400 md:text-xl"
           >
             {roles.map((role, i) => {
               const hue = ["#10B981", "#22D3EE", "#A78BFA", "#FBBF24"][i % 4];
@@ -92,14 +92,14 @@ export default function Hero() {
 
         <motion.p
           variants={fadeUp}
-          className="mx-auto mt-6 max-w-xl leading-relaxed text-slate-400"
+          className="mx-auto mt-5 max-w-xl leading-relaxed text-slate-400"
         >
           {profile.tagline}
         </motion.p>
 
         <motion.div
           variants={fadeUp}
-          className="mt-10 flex flex-wrap items-center justify-center gap-4"
+          className="mt-8 flex flex-wrap items-center justify-center gap-4"
         >
           {hero.primaryCta && (
             <a href={hero.primaryHref || "#projects"} className="btn-primary">
@@ -127,7 +127,7 @@ export default function Hero() {
         {socialList.length > 0 && (
           <motion.div
             variants={fadeUp}
-            className="mt-10 flex items-center justify-center gap-5"
+            className="mt-8 flex items-center justify-center gap-5"
           >
             {socialList.map((s, i) => {
               const hue = [
