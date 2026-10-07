@@ -3,93 +3,132 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
 import Icon from "./Icon.jsx";
 
+const LINK_HUES = ["#A3E635", "#22D3EE", "#38BDF8", "#A78BFA", "#FB7185"];
+
+/** Highlights the nav item for whichever top-level section is currently in
+    view, so visitors always know where they are on the page. */
+function useActiveSection(links) {
+  const [active, setActive] = useState("");
+  useEffect(() => {
+    const els = links
+      .map((l) => document.getElementById(String(l.href || "").replace(/^#/, "")))
+      .filter(Boolean);
+    if (els.length === 0) return undefined;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px" }
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [links.map((l) => l.href).join("|")]);
+  return active;
+}
+
 export default function Navbar() {
   const { profile, navLinks } = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
   const links = (navLinks || []).filter((l) => l.visible !== false);
+  const active = useActiveSection(links);
+  const hueFor = (i) => LINK_HUES[i % LINK_HUES.length];
+  const idOf = (l) => String(l.href || "").replace(/^#/, "");
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 px-4 transition-all duration-300 ${
-        scrolled ? "pt-3" : "pt-5"
+      className={`fixed inset-x-0 z-40 px-4 transition-all duration-300 ${
+        scrolled ? "pb-3 pt-[max(0.625rem,env(safe-area-inset-top))]" : "pb-1 pt-[max(1.25rem,env(safe-area-inset-top))]"
       }`}
     >
       <nav
-        className={`mx-auto flex h-14 max-w-3xl items-center justify-between rounded-full border px-5 transition-all duration-300 ${
+        className={`mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 rounded-full border pl-3 pr-2 transition-all duration-300 sm:px-6 ${
           scrolled
-            ? "border-white/10 bg-obsidian/80 shadow-glass backdrop-blur-xl"
+            ? "border-white/10 bg-obsidian/85 shadow-glass ring-1 ring-white/5 backdrop-blur-xl"
             : "border-transparent bg-transparent"
         }`}
       >
+        {/* Brand */}
         <a
           href="#home"
-          className="flex items-center gap-2.5 font-mono text-lg font-bold text-white"
+          onClick={() => setOpen(false)}
+          className="flex shrink-0 items-center gap-2.5 font-mono text-lg font-bold text-white"
         >
           {profile.logoUrl && (
             <img
               src={profile.logoUrl}
               alt={`${profile.name} logo`}
-              className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10"
+              className="h-12 w-12 rounded-full object-cover ring-1 ring-white/10 sm:h-14 sm:w-14"
             />
           )}
           <span>
             <span className="text-accent">{"<"}</span>
-            {profile.brand}
+            <span className="max-w-[8rem] truncate sm:max-w-none">{profile.brand}</span>
             <span className="text-cyan">{"/>"}</span>
           </span>
         </a>
 
-        {/* Desktop */}
-        {links.length > 0 && (
-          <ul className="hidden items-center gap-7 md:flex">
-            {links.map((l, i) => {
-              const hue = ["#A3E635", "#22D3EE", "#38BDF8", "#A78BFA", "#FB7185"][
-                i % 5
-              ];
-              return (
-                <li key={l.href + l.label}>
-                  <a
-                    href={l.href}
-                    className="nav-link relative text-sm text-slate-300 transition-colors after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:transition-all after:duration-300 hover:after:w-full"
-                    style={{ color: "#cbd5e1" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = hue;
-                      e.currentTarget.style.setProperty("--hue", hue);
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "#cbd5e1";
-                    }}
-                  >
-                    {l.label}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        {/* Desktop links */}
+        <ul className="hidden min-w-0 items-center gap-1 md:flex">
+          {links.map((l, i) => {
+            const hue = hueFor(i);
+            const isActive = active === idOf(l);
+            return (
+              <li key={l.href + l.label} className="shrink-0">
+                <a
+                  href={l.href}
+                  className="relative rounded-full px-3.5 py-2 text-sm transition-colors"
+                  style={{
+                    color: isActive ? hue : "#cbd5e1",
+                    background: isActive ? `${hue}14` : "transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive && e.currentTarget.style.color === "rgb(203, 213, 225)") e.currentTarget.style.color = hue;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) e.currentTarget.style.color = "#cbd5e1";
+                  }}
+                >
+                  {l.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute inset-x-3.5 -bottom-0.5 h-0.5 rounded-full"
+                      style={{ background: hue }}
+                    />
+                  )}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           <a
             href="#contact"
-            className="hidden rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-4 py-1.5 text-sm font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent md:inline-flex"
+            onClick={() => setOpen(false)}
+            className="inline-flex shrink-0 items-center rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-3 py-1.5 text-sm font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent sm:px-4"
           >
             Hire Me
           </a>
           {links.length > 0 && (
             <button
-              className="text-slate-200 md:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-slate-200 transition-colors hover:border-accent/50 hover:text-accent md:hidden"
               onClick={() => setOpen((v) => !v)}
-              aria-label="Toggle menu"
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
             >
-              <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
+              <Icon name={open ? "close" : "menu"} className="h-5 w-5" />
             </button>
           )}
         </div>
@@ -99,38 +138,41 @@ export default function Navbar() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="mx-auto mt-2 max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-obsidian/95 backdrop-blur-xl md:hidden"
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.18 }}
+            className="mx-auto mt-2 max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-obsidian/95 p-3 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-glass ring-1 ring-white/5 backdrop-blur-xl"
           >
-            <ul className="space-y-1 p-3">
+            <ul className="space-y-1.5">
               {links.map((l, i) => {
-                const hue = ["#A3E635", "#22D3EE", "#38BDF8", "#A78BFA", "#FB7185"][
-                  i % 5
-                ];
+                const hue = hueFor(i);
+                const isActive = active === idOf(l);
                 return (
                   <li key={l.href + l.label}>
                     <a
                       href={l.href}
                       onClick={() => setOpen(false)}
-                      className="block rounded-xl border-l-2 px-4 py-2.5 text-slate-300 transition-colors hover:bg-surface"
-                      style={{ borderColor: `${hue}00` }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = hue;
-                        e.currentTarget.style.borderColor = hue;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "#cbd5e1";
-                        e.currentTarget.style.borderColor = `${hue}00`;
+                      className="flex min-h-[3rem] items-center justify-between rounded-xl border-l-2 px-4 py-3 text-slate-200 transition-colors hover:bg-accent/10"
+                      style={{
+                        borderColor: isActive ? hue : "transparent",
+                        color: isActive ? hue : undefined,
                       }}
                     >
-                      {l.label}
+                      <span className="font-mono text-sm">{l.label}</span>
+                      {isActive && <Icon name="arrow" className={`h-4 w-4`} />}
                     </a>
                   </li>
                 );
               })}
             </ul>
+            <a
+              href="#contact"
+              onClick={() => setOpen(false)}
+              className="mt-2 flex min-h-[3rem] items-center justify-center rounded-xl bg-gradient-to-r from-lime via-accent to-cyan px-4 py-3 text-sm font-semibold text-obsidian md:hidden"
+            >
+              Hire Me
+            </a>
           </motion.div>
         )}
       </AnimatePresence>

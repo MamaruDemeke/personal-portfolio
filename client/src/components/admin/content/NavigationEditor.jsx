@@ -1,4 +1,10 @@
+import { useEffect, useState } from "react";
 import { Card, TextInput, Toggle } from "../fields.jsx";
+
+const newId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `nav-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const LABELS = {
   marquee: "Tech marquee",
@@ -13,12 +19,28 @@ const LABELS = {
 export default function NavigationEditor({ content, update }) {
   const links = content.navLinks || [];
   const sections = content.sections || {};
+  const [justAdded, setJustAdded] = useState(null);
+
+  /* New links are inserted at the top, right under the "+ Add link" button —
+     scroll them into view and focus the label field so adding is instant. */
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    document
+      .getElementById(`nav-card-${justAdded}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(`nav-label-${justAdded}`)?.focus();
+    return () => {};
+  }, [justAdded]);
 
   const setLinks = (next) => update(next);
   const patchSection = (key, patch) =>
     update({ ...content.sections, [key]: { ...sections[key], ...patch } });
 
-  const add = () => setLinks([...links, { label: "New link", href: "#", visible: true }]);
+  const add = () => {
+    const item = { label: "New link", href: "#", visible: true, id: newId() };
+    setJustAdded(item.id);
+    setLinks([item, ...links]);
+  };
   const remove = (i) => setLinks(links.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
     const j = i + dir;
@@ -50,12 +72,18 @@ export default function NavigationEditor({ content, update }) {
         ) : (
           <div className="space-y-3">
             {links.map((l, i) => (
-              <div key={i} className="rounded-xl border border-white/10 bg-obsidian/40 p-4">
+              <div
+                key={l.id || i}
+                id={`nav-card-${l.id}`}
+                className="rounded-xl border border-white/10 bg-obsidian/40 p-4"
+              >
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="w-40">
                     <TextInput
+                      id={`nav-label-${l.id}`}
                       label="Label"
                       value={l.label}
+                      autoFocus={justAdded === l.id}
                       onChange={(v) => patch(i, "label", v)}
                     />
                   </div>

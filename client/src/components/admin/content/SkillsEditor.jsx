@@ -1,12 +1,35 @@
+import { useEffect, useState } from "react";
 import { Card, TextInput, toList } from "../fields.jsx";
 
-const EMPTY = { title: "New Category", skills: [] };
+const newId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `skill-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const EMPTY = { id: "", title: "New Category", skills: [] };
 
 export default function SkillsEditor({ content, update }) {
   const skills = content.skills || [];
+  const [justAdded, setJustAdded] = useState(null);
   const setSkills = (next) => update(next);
 
-  const add = () => setSkills([...skills, { ...EMPTY }]);
+  /* New categories are inserted at the top, right under the "+ Add category"
+     button — scroll them into view and focus the title field so adding is
+     instant. */
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    document
+      .getElementById(`skill-card-${justAdded}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(`skill-title-${justAdded}`)?.focus();
+    return () => {};
+  }, [justAdded]);
+
+  const add = () => {
+    const item = { ...EMPTY, id: newId() };
+    setJustAdded(item.id);
+    setSkills([item, ...skills]);
+  };
   const remove = (i) => setSkills(skills.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
     const j = i + dir;
@@ -41,12 +64,15 @@ export default function SkillsEditor({ content, update }) {
       )}
 
       {skills.map((cat, i) => (
-        <Card key={i}>
+        <div key={cat.id || i} id={`skill-card-${cat.id}`}>
+        <Card>
           <div className="flex items-end gap-3">
             <div className="flex-1">
               <TextInput
+                id={`skill-title-${cat.id}`}
                 label="Category title"
                 value={cat.title}
+                autoFocus={justAdded === cat.id}
                 onChange={(v) => patch(i, "title", v)}
               />
             </div>
@@ -84,6 +110,7 @@ export default function SkillsEditor({ content, update }) {
             placeholder="HTML, CSS, JavaScript"
           />
         </Card>
+        </div>
       ))}
     </div>
   );

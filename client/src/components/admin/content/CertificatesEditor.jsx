@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card, Grid, TextInput, UploadField } from "../fields.jsx";
 import { useFile } from "../../../hooks/useFile.jsx";
 
@@ -47,6 +48,18 @@ function CertFileArea({ cert, onStoreFile }) {
 
 export default function CertificatesEditor({ content, update, persist }) {
   const certs = content.certificates || [];
+  const [justAdded, setJustAdded] = useState(null);
+
+  /* New cards are inserted at the top, right under the "+ Add certificate"
+     button — scroll them into view and focus the title so adding is instant. */
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    document
+      .getElementById(`cert-card-${justAdded}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(`cert-title-${justAdded}`)?.focus();
+    return () => {};
+  }, [justAdded]);
 
   /** Publishes straight to Firestore so the file link survives without the
       admin having to press "Save & Publish Changes" afterwards. */
@@ -61,7 +74,11 @@ export default function CertificatesEditor({ content, update, persist }) {
     );
   };
 
-  const add = () => update([...certs, { ...EMPTY, id: newId() }]);
+  const add = () => {
+    const item = { ...EMPTY, id: newId() };
+    setJustAdded(item.id);
+    update([item, ...certs]);
+  };
   const remove = (i) => update(certs.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
     const j = i + dir;
@@ -96,7 +113,8 @@ export default function CertificatesEditor({ content, update, persist }) {
       )}
 
       {certs.map((cert, i) => (
-        <Card key={cert.id || i}>
+        <div key={cert.id || i} id={`cert-card-${cert.id}`}>
+        <Card>
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-accent/70">
               0{i + 1}
@@ -131,8 +149,10 @@ export default function CertificatesEditor({ content, update, persist }) {
 
           <Grid cols={4}>
             <TextInput
+              id={`cert-title-${cert.id}`}
               label="Title"
               value={cert.title}
+              autoFocus={justAdded === cert.id}
               onChange={(v) => patch(i, "title", v)}
             />
             <TextInput
@@ -155,6 +175,7 @@ export default function CertificatesEditor({ content, update, persist }) {
 
           <CertFileArea cert={cert} onStoreFile={(ref) => storeFile(i, ref)} />
         </Card>
+        </div>
       ))}
     </div>
   );

@@ -1,6 +1,13 @@
+import { useEffect, useState } from "react";
 import { Card, Grid, TextInput, TextArea, toList } from "../fields.jsx";
 
+const newId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
 const EMPTY = {
+  id: "",
   company: "",
   role: "",
   period: "",
@@ -11,8 +18,24 @@ const EMPTY = {
 
 export default function ExperienceEditor({ content, update }) {
   const jobs = content.experience || [];
+  const [justAdded, setJustAdded] = useState(null);
 
-  const add = () => update([...jobs, { ...EMPTY }]);
+  /* New cards are inserted at the top, right under the "+ Add role" button —
+     scroll them into view and focus the company field so adding is instant. */
+  useEffect(() => {
+    if (!justAdded) return undefined;
+    document
+      .getElementById(`job-card-${justAdded}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById(`job-company-${justAdded}`)?.focus();
+    return () => {};
+  }, [justAdded]);
+
+  const add = () => {
+    const item = { ...EMPTY, id: newId() };
+    setJustAdded(item.id);
+    update([item, ...jobs]);
+  };
   const remove = (i) => update(jobs.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
     const j = i + dir;
@@ -46,7 +69,8 @@ export default function ExperienceEditor({ content, update }) {
       )}
 
       {jobs.map((job, i) => (
-        <Card key={i}>
+        <div key={job.id || i} id={`job-card-${job.id}`}>
+        <Card>
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-accent/70">
               0{i + 1}
@@ -80,8 +104,10 @@ export default function ExperienceEditor({ content, update }) {
           </div>
           <Grid cols={3}>
             <TextInput
+              id={`job-company-${job.id}`}
               label="Company"
               value={job.company}
+              autoFocus={justAdded === job.id}
               onChange={(v) => patch(i, "company", v)}
             />
             <TextInput
@@ -120,6 +146,7 @@ export default function ExperienceEditor({ content, update }) {
             onChange={(v) => patch(i, "tech", toList(v))}
           />
         </Card>
+        </div>
       ))}
     </div>
   );

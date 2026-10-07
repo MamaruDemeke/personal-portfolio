@@ -7,7 +7,7 @@ export default function ProjectsSettingsEditor({ content, update }) {
     const v = window.prompt("Category name");
     const name = (v || "").trim();
     if (!name) return;
-    update([...categories, name]);
+    update([name, ...categories]);
   };
   const remove = (i) => update(categories.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
