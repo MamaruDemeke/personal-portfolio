@@ -62,18 +62,18 @@ export default function Navbar() {
         <a
           href="#home"
           onClick={() => setOpen(false)}
-          className="flex shrink-0 items-center gap-2.5 font-mono text-lg font-bold text-white"
+          className="flex min-w-0 flex-1 items-center gap-2 font-mono text-lg font-bold text-white sm:gap-2.5"
         >
           {profile.logoUrl && (
             <img
               src={profile.logoUrl}
               alt={`${profile.name} logo`}
-              className="h-12 w-12 rounded-full object-cover ring-1 ring-white/10 sm:h-14 sm:w-14"
+              className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-white/10 sm:h-14 sm:w-14"
             />
           )}
-          <span>
+          <span className="min-w-0 truncate">
             <span className="text-accent">{"<"}</span>
-            <span className="max-w-[8rem] truncate sm:max-w-none">{profile.brand}</span>
+            {profile.brand}
             <span className="text-cyan">{"/>"}</span>
           </span>
         </a>
@@ -117,7 +117,7 @@ export default function Navbar() {
           <a
             href="#contact"
             onClick={() => setOpen(false)}
-            className="inline-flex shrink-0 items-center rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-3 py-1.5 text-sm font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent sm:px-4"
+            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-2.5 py-1.5 text-xs font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent sm:px-4 sm:text-sm"
           >
             Hire Me
           </a>
