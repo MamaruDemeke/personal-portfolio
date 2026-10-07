@@ -47,12 +47,12 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed inset-x-0 z-40 px-4 transition-all duration-300 ${
+      className={`fixed inset-x-0 z-40 px-3 transition-all duration-300 sm:px-4 ${
         scrolled ? "pb-3 pt-[max(0.625rem,env(safe-area-inset-top))]" : "pb-1 pt-[max(1.25rem,env(safe-area-inset-top))]"
       }`}
     >
       <nav
-        className={`mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 rounded-full border pl-3 pr-2 transition-all duration-300 sm:px-6 ${
+        className={`flex h-16 w-full items-center justify-between gap-2 rounded-full border pl-2 pr-2 transition-all duration-300 sm:mx-auto sm:max-w-6xl sm:gap-3 sm:pl-6 ${
           scrolled
             ? "border-white/10 bg-obsidian/85 shadow-glass ring-1 ring-white/5 backdrop-blur-xl"
             : "border-transparent bg-transparent"
@@ -62,7 +62,7 @@ export default function Navbar() {
         <a
           href="#home"
           onClick={() => setOpen(false)}
-          className="flex min-w-0 flex-1 items-center gap-2 font-mono text-lg font-bold text-white sm:gap-2.5"
+          className="flex min-w-0 items-center gap-2 font-mono text-lg font-bold text-white sm:gap-2.5"
         >
           {profile.logoUrl && (
             <img
@@ -71,7 +71,7 @@ export default function Navbar() {
               className="h-11 w-11 shrink-0 rounded-full object-cover ring-1 ring-white/10 sm:h-14 sm:w-14"
             />
           )}
-          <span className="min-w-0 truncate">
+          <span className="hidden min-w-0 truncate sm:block">
             <span className="text-accent">{"<"}</span>
             {profile.brand}
             <span className="text-cyan">{"/>"}</span>
