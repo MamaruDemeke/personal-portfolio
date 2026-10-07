@@ -1,28 +1,27 @@
-import {
-  Card,
-  TextInput,
-  UploadField,
-  ImageUploadField,
-  extFor,
-  stamp,
-} from "../fields.jsx";
+import { Card, TextInput, UploadField, ImageUploadField } from "../fields.jsx";
+import { useFile } from "../../../hooks/useFile.jsx";
 import Icon from "../../Icon.jsx";
 
 export default function FilesEditor({ content, update, persist }) {
   const p = content.profile;
+  const resumeUri = useFile(p.resumeFile);
+
   const store = (patch, message) =>
     persist
       ? persist({ ...content, profile: { ...content.profile, ...patch } }, message)
       : update(patch);
 
+  const resumePreview = resumeUri || p.resumeUrl || "";
+  const resumeIsImage =
+    p.resumeFile?.type?.startsWith("image/") ||
+    /\.(png|jpe?g|webp|gif)($|\?)/i.test(p.resumeUrl || "");
+
   return (
     <div className="space-y-6">
       <p className="rounded-lg bg-accent/10 px-4 py-3 text-sm text-accent">
-        Uploads publish themselves — the link is written to Firestore the moment
-        the file lands, so there is nothing else to save. If an upload is
-        rejected with &ldquo;Storage rules blocked this upload&rdquo;, run{' '}
-        <code className="font-mono">firebase deploy --only storage</code> once
-        from the project root.
+        Uploads are stored free in Firestore (no card required) and publish
+        themselves — the moment a file lands, the link is live. Each file is
+        capped at 700 KB, the Firestore document limit.
       </p>
 
       <Card>
@@ -89,14 +88,14 @@ export default function FilesEditor({ content, update, persist }) {
         </div>
 
         <UploadField
-          label="Resume file (PDF, max 10 MB)"
-          kind="pdf"
-          accept="application/pdf,.pdf"
-          maxMB={10}
-          currentUrl={p.resumeUrl}
-          storagePath={(f) => `cv/resume-${stamp(extFor(f))}`}
-          onUploaded={(url) => store({ resumeUrl: url }, "CV uploaded and published.")}
-          onCleared={() => update({ resumeUrl: "" })}
+          label="Resume file (any format, max 700 KB)"
+          kind="any"
+          accept=".pdf,.doc,.docx,.rtf,.txt,.odt,.xls,.xlsx,.ppt,.pptx,image/*,application/pdf,.jpg,.jpeg,.png,.webp"
+          fileId={`cv-${Date.now()}`}
+          currentRef={p.resumeFile}
+          hint="PDF, Word, text or image — anything up to 700 KB, stored free in Firestore."
+          onUploaded={(ref) => store({ resumeFile: ref }, "CV uploaded and published.")}
+          onCleared={() => update({ resumeFile: null })}
         />
 
         <TextInput
@@ -106,12 +105,20 @@ export default function FilesEditor({ content, update, persist }) {
           hint="Overrides the uploaded file if you set an external link."
         />
 
-        {p.resumeUrl && /\.pdf($|\?)/i.test(p.resumeUrl) && (
-          <iframe
-            title="Current CV"
-            src={p.resumeUrl}
-            className="h-64 w-full rounded-lg border border-white/10 bg-obsidian"
+        {resumePreview && resumeIsImage ? (
+          <img
+            src={resumePreview}
+            alt="Current CV"
+            className="max-h-64 w-full rounded-lg border border-white/10 object-contain bg-obsidian"
           />
+        ) : (
+          resumePreview && (
+            <iframe
+              title="Current CV"
+              src={resumePreview}
+              className="h-64 w-full rounded-lg border border-white/10 bg-obsidian"
+            />
+          )
         )}
       </Card>
 
@@ -125,7 +132,7 @@ export default function FilesEditor({ content, update, persist }) {
               Brand images
             </h4>
             <p className="text-sm text-slate-400">
-              Compressed in your browser before upload.
+              Compressed in your browser, then stored free in Firestore.
             </p>
           </div>
         </div>
@@ -133,19 +140,19 @@ export default function FilesEditor({ content, update, persist }) {
         <ImageUploadField
           label="Logo / avatar"
           currentUrl={p.logoUrl}
-          storagePath={(f) => `profile/logo-${stamp(extFor(f))}`}
+          maxBytes={300 * 1024}
           onUploaded={(url) => store({ logoUrl: url }, "Logo uploaded and published.")}
           onCleared={() => update({ logoUrl: "" })}
-          hint="Shown in the navbar. Square images work best."
+          hint="Shown in the navbar. Square images work best. Max 300 KB."
         />
 
         <ImageUploadField
           label="Favicon"
           currentUrl={p.faviconUrl}
-          storagePath={(f) => `profile/favicon-${stamp(extFor(f))}`}
+          maxBytes={300 * 1024}
           onUploaded={(url) => store({ faviconUrl: url }, "Favicon uploaded and published.")}
           onCleared={() => update({ faviconUrl: "" })}
-          hint="Small square image shown in the browser tab."
+          hint="Small square image shown in the browser tab. Max 300 KB."
         />
       </Card>
     </div>

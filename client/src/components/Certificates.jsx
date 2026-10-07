@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
+import { useFile, fileAnchorProps } from "../hooks/useFile.jsx";
 import Icon from "./Icon.jsx";
 
 const HUES = [
@@ -11,6 +12,29 @@ const HUES = [
   ["#A78BFA", "#FB7185"],
   ["#38BDF8", "#A3E635"],
 ];
+
+function CertLink({ cert, hueA, hueB }) {
+  const uri = useFile(cert.file);
+  const href = uri || cert.fileUrl || cert.url || "";
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      {...fileAnchorProps(href, cert.file?.name)}
+      className="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest transition-colors"
+      style={{ color: hueA }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = hueB;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = hueA;
+      }}
+    >
+      {cert.file || cert.fileUrl ? "View / download" : "View credential"}
+      <Icon name="external" className="h-3.5 w-3.5" />
+    </a>
+  );
+}
 
 export default function Certificates() {
   const { certificates } = useSiteContent();
@@ -42,23 +66,8 @@ export default function Certificates() {
                 {cert.title}
               </h3>
               <p className="mt-1 text-sm text-slate-400">{cert.issuer}</p>
-              {(cert.fileUrl || cert.url) && (
-                <a
-                  href={cert.fileUrl || cert.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest transition-colors"
-                  style={{ color: a }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.color = b;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.color = a;
-                  }}
-                >
-                  {cert.fileUrl ? "View / download" : "View credential"}
-                  <Icon name="external" className="h-3.5 w-3.5" />
-                </a>
+              {(cert.file || cert.fileUrl || cert.url) && (
+                <CertLink cert={cert} hueA={a} hueB={b} />
               )}
             </motion.article>
           );

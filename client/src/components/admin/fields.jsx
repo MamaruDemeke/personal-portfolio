@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import { db, storage } from "../../firebase.js";
+import { db } from "../../firebase.js";
 import { doc, setDoc } from "firebase/firestore";
-import {
-  ref as storageRef,
-  uploadBytes,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
 import { compressImage } from "../../utils/compressImage.js";
+import { useFile, fileAnchorProps } from "../../hooks/useFile.jsx";
 import Icon from "../Icon.jsx";
 
 export const safeSlug = (s = "") =>
@@ -150,10 +145,17 @@ export function toList(value) {
 
 /* ---------- file upload ---------- */
 
-/** Some browsers report an empty type; derive one from the extension so the
-    Firebase Storage rules (which match on contentType) don't reject the file. */
+/* Some browsers report an empty type; derive one from the filename. */
 const TYPE_BY_EXT = {
   pdf: "application/pdf",
+  doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ppt: "application/vnd.ms-powerpoint",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  rtf: "application/rtf",
+  txt: "text/plain",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
   png: "image/png",
@@ -172,41 +174,62 @@ function resolveType(file) {
   return TYPE_BY_EXT[ext] || "application/octet-stream";
 }
 
-/** File extension that matches the contentType actually sent to Storage. */
+/** File extension that matches the contentType actually sent to Storage.
+    Prefers the real filename so a `.docx` stays a `.docx` instead of being
+    renamed to `.jpg`. */
+const EXT_OK = /^[a-z0-9]{1,6}$/;
+
 export function extFor(file) {
+  const name = String(file?.name || "");
+  const raw = name.includes(".") ? (name.split(".").pop() || "").toLowerCase() : "";
+  if (EXT_OK.test(raw)) return raw;
   const t = resolveType(file);
   if (t === "application/pdf") return "pdf";
+  if (t === "image/jpeg") return "jpg";
   if (t === "image/png") return "png";
   if (t === "image/webp") return "webp";
-  if (t === "image/svg+xml") return "svg";
   if (t === "image/gif") return "gif";
-  if (t === "image/x-icon") return "ico";
-  return "jpg";
+  if (t === "image/svg+xml") return "svg";
+  return "bin";
 }
 
 /** Turns Firebase errors into something actionable. */
 export function explainUploadError(err) {
   const code = err?.code || "";
-  if (code === "storage/unauthorized" || code === "storage/401-unauthorized") {
-    return "Storage rules blocked this upload. Run: firebase deploy --only storage (then firestore:rules).";
+  const msg = err?.message || "";
+  if (code === "permission-denied") {
+    return "Your admin session expired or lacks access — sign out and back in, then retry.";
   }
-  if (code === "storage/unauthenticated") {
-    return "Your admin session expired — sign out and back in, then retry.";
+  if (code === "unauthenticated") {
+    return "You must be signed in to upload. Sign out and back in, then retry.";
   }
-  if (code === "storage/quota-exceeded") {
-    return "Upload failed: your Firebase Storage quota is full.";
+  if (code === "cancelled") return "Upload was canceled.";
+  if (code === "unavailable") {
+    return "Firestore is unreachable right now. Try again in a moment.";
   }
-  if (code === "storage/canceled") return "Upload was canceled.";
-  if (code === "storage/retry-limit-exceeded") {
-    return "Upload failed after retries — check your connection.";
-  }
-  if (code === "storage/invalid-argument") {
-    return "Storage rejected the file type. Check that your CV is a PDF and images are PNG/JPG/WebP.";
-  }
-  if (code === "storage/unavailable") {
-    return "Storage is unreachable right now. Try again in a moment.";
-  }
-  return err?.message || "Upload failed.";
+  if (/invalid-argument|too large/i.test(msg)) return FILE_TOO_BIG_MSG;
+  return msg || "Upload failed.";
+}
+
+/** Choices here are dictated by the free "no card" upload path: every file
+    lives in its own Firestore document, and Firestore caps a document at
+    1 MiB. Base64 adds ~33%, so a 700 KB file becomes roughly 933 KB of text.
+    Files over that are rejected on the client before any network call. */
+export const MAX_FILE_BYTES = 700 * 1024;
+export const MAX_B64_LEN = 960000;
+export const FILE_TOO_BIG_MSG =
+  `That file is over ${MAX_FILE_BYTES / 1024} KB — the limit for free ` +
+  "uploads. Shrink it (a PDF usually only needs its images compressed) and " +
+  "try again.";
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",").pop() || "");
+    reader.onerror = () =>
+      reject(reader.error || new Error("Could not read that file."));
+    reader.readAsDataURL(file);
+  });
 }
 
 function useUploadTask() {
@@ -214,102 +237,73 @@ function useUploadTask() {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
 
-  /** Uploads a file and resolves with its download URL. */
-  const start = async (file, path) => {
-    if (!storage) {
-      throw new Error("Firebase Storage is not configured on this deployment.");
-    }
-    const ref = storageRef(storage, path);
-    const contentType = resolveType(file);
-    const meta = { contentType };
+  /** Reads the file as base64 and saves it to files/{fileId}. Resolves to the
+      reference object to keep in the site/main document. */
+  const start = async (file, fileId) => {
+    if (!db) throw new Error("Firebase is not configured on this deployment.");
+    if (file.size > MAX_FILE_BYTES) throw new Error(FILE_TOO_BIG_MSG);
 
     setUploading(true);
-    setProgress(0);
+    setProgress(10);
     setError("");
 
-    const resumable = () =>
-      new Promise((resolve, reject) => {
-        let settled = false;
-        const watchdog = setTimeout(() => {
-          if (settled) return;
-          settled = true;
-          try {
-            task.cancel();
-          } catch {
-            /* already finished */
-          }
-          reject(new Error("stalled"));
-        }, 15000);
+    const data = await toBase64(file);
+    if (data.length > MAX_B64_LEN) throw new Error(FILE_TOO_BIG_MSG);
+    setProgress(60);
 
-        const done = (fn, val) => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(watchdog);
-          fn(val);
-        };
+    const type = resolveType(file);
+    await setDoc(doc(db, "files", fileId), {
+      name: file.name || `${fileId}.${extFor(file)}`,
+      type,
+      size: file.size,
+      data,
+      updatedAt: new Date().toISOString(),
+    });
 
-        const task = uploadBytesResumable(ref, file, meta);
-        task.on(
-          "state_changed",
-          (snap) =>
-            setProgress(
-              snap.totalBytes
-                ? Math.min(99, (snap.bytesTransferred / snap.totalBytes) * 100)
-                : 0
-            ),
-          (err) => done(reject, err),
-          async () => {
-            try {
-              done(resolve, await getDownloadURL(task.snapshot.ref));
-            } catch (err) {
-              done(reject, err);
-            }
-          }
-        );
-      });
-
-    /* Try the resumable session first so large files survive connection blips,
-       but fall back to a single-shot upload if the session stalls at 0%. */
-    try {
-      const url = await resumable();
-      setProgress(100);
-      setUploading(false);
-      return url;
-    } catch (err) {
-      const stalled = err?.message === "stalled";
-      if (!stalled) {
-        setUploading(false);
-        throw err;
-      }
-      try {
-        const snap = await uploadBytes(ref, file, meta);
-        setProgress(100);
-        setUploading(false);
-        return await getDownloadURL(snap.ref);
-      } catch (err2) {
-        setUploading(false);
-        throw err2;
-      }
-    }
+    setProgress(100);
+    setUploading(false);
+    return { fileId, name: file.name || fileId, type, size: file.size };
   };
 
-  return { uploading, progress, error, setError, setUploading, start };
+  /** Inline variant for small brand images: returns a data URI directly and
+      stores nothing extra — the URI itself is written into the content doc. */
+  const inline = async (file, maxBytes) => {
+    if (!db) throw new Error("Firebase is not configured on this deployment.");
+    setUploading(true);
+    setProgress(10);
+    setError("");
+
+    const compressed = await compressImage(file);
+    if (compressed.size > maxBytes) {
+      throw new Error(
+        `That image is still larger than ${Math.round(maxBytes / 1024)} KB after compression.`
+      );
+    }
+    setProgress(80);
+
+    const data = await toBase64(compressed);
+    setProgress(100);
+    setUploading(false);
+    return `data:${resolveType(compressed)};base64,${data}`;
+  };
+
+  return { uploading, progress, error, setError, setUploading, start, inline };
 }
 
 export function UploadField({
   label,
   accept,
-  currentUrl,
+  currentRef,
   onUploaded,
   onCleared,
   hint,
   kind = "file",
-  storagePath,
-  maxMB = 10,
+  fileId,
   compress = false,
 }) {
   const { uploading, progress, error, setError, setUploading, start } =
     useUploadTask();
+  const preview = useFile(currentRef);
 
   /* Holds the bar at 100% for a moment so a finished upload is visible instead
      of the row snapping back to the idle state. */
@@ -333,19 +327,20 @@ export function UploadField({
       setError("Please choose a PDF file.");
       return;
     }
-    if (file.size > maxMB * 1024 * 1024) {
-      setError(`That file is larger than ${maxMB} MB.`);
+    if (file.size > MAX_FILE_BYTES) {
+      setError(FILE_TOO_BIG_MSG);
       return;
     }
 
     try {
       let payload = file;
-      if (compress && file.type.startsWith("image/")) {
-        payload = await compressImage(file);
+      if (compress && file.type && file.type.startsWith("image/")) {
+        const compressed = await compressImage(file);
+        if (compressed.size <= MAX_FILE_BYTES) payload = compressed;
       }
-      const url = await start(payload, storagePath(payload));
+      const ref = await start(payload, fileId);
       setDone(true);
-      onUploaded(url);
+      onUploaded(ref);
       setError("");
     } catch (err) {
       setUploading(false);
@@ -360,7 +355,7 @@ export function UploadField({
           <Icon name="upload" className="h-4 w-4" />
           {uploading
             ? "Uploading..."
-            : currentUrl
+            : currentRef
               ? "Replace file"
               : "Upload file"}
           <input
@@ -380,7 +375,7 @@ export function UploadField({
             {done ? "done" : `${Math.round(progress)}%`}
           </span>
         )}
-        {currentUrl && (
+        {currentRef && (
           <button
             type="button"
             onClick={onCleared}
@@ -399,11 +394,10 @@ export function UploadField({
         </div>
       )}
       {error && <span className="mt-1 block text-xs text-red-400">{error}</span>}
-      {currentUrl && (
+      {preview && (
         <a
-          href={currentUrl}
-          target="_blank"
-          rel="noreferrer"
+          href={preview}
+          {...fileAnchorProps(preview, currentRef?.name)}
           className="mt-2 inline-block font-mono text-xs text-accent hover:underline"
         >
           view current file
@@ -419,11 +413,10 @@ export function ImageUploadField({
   onUploaded,
   onCleared,
   hint,
-  storagePath,
-  maxMB = 5,
+  maxBytes = MAX_FILE_BYTES,
   aspect = "aspect-square",
 }) {
-  const { uploading, progress, error, setError, setUploading, start } =
+  const { uploading, progress, error, setError, setUploading, inline } =
     useUploadTask();
 
   const handleFile = async (file) => {
@@ -433,18 +426,13 @@ export function ImageUploadField({
       setError("Please choose an image file.");
       return;
     }
-    if (file.size > maxMB * 1024 * 1024) {
-      setError(`That image is larger than ${maxMB} MB.`);
+    if (file.size > maxBytes) {
+      setError(`That image is larger than ${Math.round(maxBytes / 1024)} KB.`);
       return;
     }
     try {
       // Shrink in the browser first so the upload is quick on slow connections.
-      const compressed = await compressImage(file);
-      if (compressed.size > maxMB * 1024 * 1024) {
-        setError("Still too large after compression - try a smaller image.");
-        return;
-      }
-      const url = await start(compressed, storagePath(compressed));
+      const url = await inline(file, maxBytes);
       onUploaded(url);
       setError("");
     } catch (err) {

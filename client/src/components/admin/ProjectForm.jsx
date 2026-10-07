@@ -5,7 +5,6 @@ import {
   TextArea,
   SelectInput,
   ImageUploadField,
-  extFor,
 } from "./fields.jsx";
 import Icon from "../Icon.jsx";
 
@@ -120,9 +119,8 @@ export default function ProjectForm({ initial, categories = [], onClose, onSave 
           label="Cover image"
           currentUrl={form.imageUrl}
           aspect="aspect-video"
-          maxMB={5}
-          hint="Compressed in your browser before upload (max 5 MB)."
-          storagePath={(f) => `projects/cover-${Date.now()}.${extFor(f)}`}
+          maxBytes={700 * 1024}
+          hint="Compressed in your browser before upload, stored free in Firestore (max 700 KB)."
           onUploaded={set("imageUrl")}
           onCleared={() => set("imageUrl")("")}
         />

@@ -103,9 +103,10 @@ export default function ContentForm() {
     }
   };
 
-  /* Uploads live in Firebase Storage, so the URL is persisted to Firestore the
-     moment it lands. Without this the file would sit in the bucket while the
-     site kept serving the old link until someone hit "Save & Publish". */
+  /* Uploads are saved to their own Firestore docs, so the reference is
+     persisted to Firestore the moment the file lands. Without this the file
+     would sit in the files collection while the site kept serving the old
+     link until someone hit "Save & Publish". */
   const persist = useCallback(async (next, message) => {
     setContent(next);
     try {
@@ -114,7 +115,7 @@ export default function ContentForm() {
       localStorage.removeItem(DRAFT_KEY);
       setNotice(message || "File uploaded and published.");
     } catch (err) {
-      setNotice(`Uploaded to Storage, but saving the link failed: ${err.message}`);
+      setNotice(`File stored, but saving the link failed: ${err.message}`);
     }
   }, []);
 

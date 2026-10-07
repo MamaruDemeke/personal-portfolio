@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
+import { useFile } from "../hooks/useFile.jsx";
 import Icon from "./Icon.jsx";
 import { fadeUp, stagger } from "./Section.jsx";
 
@@ -7,6 +8,8 @@ export default function Hero() {
   const { profile, hero, socials } = useSiteContent();
   const roles = hero.roles || [];
   const socialList = socials || [];
+  const resumeUri = useFile(profile.resumeFile);
+  const resumeHref = resumeUri || profile.resumeUrl || "";
 
   return (
     <section
@@ -109,8 +112,12 @@ export default function Hero() {
               {hero.secondaryCta}
             </a>
           )}
-          {hero.showResume && profile.resumeUrl && (
-            <a href={profile.resumeUrl} download className="btn-outline">
+          {hero.showResume && resumeHref && (
+            <a
+              href={resumeHref}
+              download={profile.resumeFile?.name || "resume"}
+              className="btn-outline"
+            >
               {hero.resumeCta || "Download CV"}
               <Icon name="download" className="h-4 w-4" />
             </a>

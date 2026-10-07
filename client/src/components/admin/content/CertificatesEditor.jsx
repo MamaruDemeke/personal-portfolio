@@ -1,22 +1,67 @@
-import { Card, Grid, TextInput, UploadField, safeSlug, extFor } from "../fields.jsx";
+import { Card, Grid, TextInput, UploadField } from "../fields.jsx";
+import { useFile } from "../../../hooks/useFile.jsx";
 
-const EMPTY = { title: "", issuer: "", year: "", url: "", fileUrl: "" };
+const newId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `cert-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+const EMPTY = { title: "", issuer: "", year: "", url: "", file: null };
+
+function CertFileArea({ cert, onStoreFile }) {
+  const uri = useFile(cert.file);
+  const src = uri || cert.fileUrl;
+  const isImage =
+    (cert.file?.type || "").startsWith("image/") ||
+    /\.(png|jpe?g|webp|gif)($|\?)/i.test(cert.fileUrl || "");
+
+  return (
+    <>
+      <UploadField
+        label="Certificate file"
+        accept=".pdf,.doc,.docx,.rtf,.txt,.png,.jpg,.jpeg,.webp,.gif,image/*,application/pdf"
+        kind="any"
+        compress
+        fileId={`cert-${cert.id}-${Date.now()}`}
+        currentRef={cert.file}
+        hint="Any format up to 700 KB — PDF, Word or image. Images are compressed in your browser first."
+        onUploaded={(ref) => onStoreFile(ref)}
+        onCleared={() => onStoreFile(null)}
+      />
+      {src && (isImage ? (
+        <img
+          src={src}
+          alt={cert.title}
+          className="max-h-48 w-full rounded-lg border border-white/10 object-contain"
+        />
+      ) : (
+        <iframe
+          title={cert.title}
+          src={src}
+          className="h-48 w-full rounded-lg border border-white/10 bg-obsidian"
+        />
+      ))}
+    </>
+  );
+}
 
 export default function CertificatesEditor({ content, update, persist }) {
   const certs = content.certificates || [];
 
   /** Publishes straight to Firestore so the file link survives without the
       admin having to press "Save & Publish Changes" afterwards. */
-  const storeFile = (i, url) => {
-    if (!persist) return patch(i, "fileUrl", url);
-    const next = certs.map((c, idx) => (idx === i ? { ...c, fileUrl: url } : c));
+  const storeFile = (i, ref) => {
+    const next = certs.map((c, idx) =>
+      idx === i ? { ...c, file: ref, fileUrl: "" } : c
+    );
+    if (!persist) return update(next);
     persist(
       { ...content, certificates: next },
-      url ? "Certificate uploaded and published." : "Certificate link cleared."
+      ref ? "Certificate uploaded and published." : "Certificate removed."
     );
   };
 
-  const add = () => update([...certs, { ...EMPTY }]);
+  const add = () => update([...certs, { ...EMPTY, id: newId() }]);
   const remove = (i) => update(certs.filter((_, idx) => idx !== i));
   const move = (i, dir) => {
     const j = i + dir;
@@ -33,6 +78,7 @@ export default function CertificatesEditor({ content, update, persist }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-400">
           Upload the actual certificate file — the public card links to it.
+          Files are stored free in Firestore (max 700 KB each).
         </p>
         <button
           type="button"
@@ -50,7 +96,7 @@ export default function CertificatesEditor({ content, update, persist }) {
       )}
 
       {certs.map((cert, i) => (
-        <Card key={i}>
+        <Card key={cert.id || i}>
           <div className="flex items-center justify-between">
             <span className="font-mono text-xs text-accent/70">
               0{i + 1}
@@ -107,35 +153,7 @@ export default function CertificatesEditor({ content, update, persist }) {
             />
           </Grid>
 
-          <UploadField
-            label="Certificate file"
-            accept="application/pdf,image/*"
-            maxMB={10}
-            kind="any"
-            compress
-            hint="PDF or image, up to 10 MB. Images are compressed first."
-            currentUrl={cert.fileUrl}
-            storagePath={(f) =>
-              `certificates/${safeSlug(cert.title) || "certificate"}-${Date.now()}.${extFor(f)}`
-            }
-            onUploaded={(url) => storeFile(i, url)}
-            onCleared={() => storeFile(i, "")}
-          />
-
-          {cert.fileUrl && /\.pdf($|\?)/i.test(cert.fileUrl) && (
-            <iframe
-              title={cert.title}
-              src={cert.fileUrl}
-              className="h-48 w-full rounded-lg border border-white/10 bg-obsidian"
-            />
-          )}
-          {cert.fileUrl && /\.(png|jpe?g|webp|gif)($|\?)/i.test(cert.fileUrl) && (
-            <img
-              src={cert.fileUrl}
-              alt={cert.title}
-              className="max-h-48 w-full rounded-lg border border-white/10 object-contain"
-            />
-          )}
+          <CertFileArea cert={cert} onStoreFile={(ref) => storeFile(i, ref)} />
         </Card>
       ))}
     </div>

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import Section, { fadeUp } from "./Section.jsx";
 import { useSiteContent } from "../hooks/useSiteContent.jsx";
+import { useFile } from "../hooks/useFile.jsx";
 import Icon from "./Icon.jsx";
 
 const STAT_HUES = ["#22D3EE", "#A78BFA", "#FBBF24", "#FB7185", "#A3E635", "#38BDF8"];
@@ -9,6 +10,8 @@ export default function About() {
   const { profile, about } = useSiteContent();
   const a = about;
   const showAvailability = a.availability?.enabled !== false;
+  const resumeUri = useFile(profile.resumeFile);
+  const resumeHref = resumeUri || profile.resumeUrl || "";
 
   return (
     <Section id="about" eyebrow="about" title="Behind the" accent="pixels">
@@ -97,11 +100,11 @@ export default function About() {
         </motion.div>
 
         {/* Download CV card */}
-        {profile.resumeUrl && (
+        {resumeHref && (
           <motion.a
             variants={fadeUp}
-            href={profile.resumeUrl}
-            download
+            href={resumeHref}
+            download={profile.resumeFile?.name || "resume"}
             style={{ "--hue": "#A78BFA", "--hue-a": "#A78BFA", "--hue-b": "#FB7185" }}
             className="hue-card group flex flex-col justify-between p-6"
           >
@@ -113,7 +116,7 @@ export default function About() {
                 Download CV
               </p>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-400 transition-colors group-hover:text-violet">
-                Resume — PDF
+                {profile.resumeFile?.name || `Resume — ${resumeHref.startsWith("data:") ? "file" : "PDF"}`}
                 <Icon name="arrow" className="h-4 w-4" />
               </p>
             </div>
