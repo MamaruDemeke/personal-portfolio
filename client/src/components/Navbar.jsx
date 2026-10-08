@@ -117,7 +117,7 @@ export default function Navbar() {
           <a
             href="#contact"
             onClick={() => setOpen(false)}
-            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-gradient-to-r from-lime via-accent to-cyan px-2.5 py-1.5 text-xs font-semibold text-obsidian transition-all hover:scale-[1.03] hover:shadow-glow-accent sm:px-4 sm:text-sm"
+            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full bg-accent px-2.5 py-1.5 text-xs font-bold text-white ring-1 ring-accent/30 transition-all hover:bg-accent-dark hover:shadow-glow-accent sm:px-4 sm:text-sm"
           >
             Hire Me
           </a>
@@ -169,7 +169,7 @@ export default function Navbar() {
             <a
               href="#contact"
               onClick={() => setOpen(false)}
-              className="mt-2 flex min-h-[3rem] items-center justify-center rounded-xl bg-gradient-to-r from-lime via-accent to-cyan px-4 py-3 text-sm font-semibold text-obsidian md:hidden"
+              className="mt-2 flex min-h-[3rem] items-center justify-center rounded-xl bg-accent px-4 py-3 text-sm font-bold text-white ring-1 ring-accent/30 md:hidden"
             >
               Hire Me
             </a>
