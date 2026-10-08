@@ -3,7 +3,7 @@
  * Resizes to fit `maxEdge` on the long side and re-encodes as JPEG.
  * Returns the original file untouched for PDFs / small images.
  */
-export async function compressImage(file, maxEdge = 1600, quality = 0.85) {
+export async function compressImage(file, maxEdge = 1280, quality = 0.8) {
   const isImage = file.type && file.type.startsWith("image/");
   const isJpegLike = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
   if (!isImage || !isJpegLike) return file; // PDFs, GIFs, etc. go as-is

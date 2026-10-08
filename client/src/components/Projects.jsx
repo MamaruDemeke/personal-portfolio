@@ -121,12 +121,12 @@ export default function Projects() {
                   style={{ "--hue": hueA, "--hue-a": hueA, "--hue-b": hueB }}
                   className="hue-card group overflow-hidden text-left"
                 >
-                  <div className="relative overflow-hidden">
+                  <div className="relative aspect-video w-full overflow-hidden bg-black/30">
                     {p.imageUrl ? (
                       <img
                         src={p.imageUrl}
                         alt={p.title}
-                        className="h-32 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-48"
+                        className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
                     ) : (

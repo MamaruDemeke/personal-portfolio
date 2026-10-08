@@ -52,7 +52,7 @@ export default function ProjectModal({ project, onClose }) {
               <img
                 src={project.imageUrl}
                 alt={project.title}
-                className="mb-4 h-44 w-full rounded-xl object-cover sm:h-56"
+                className="mb-4 aspect-video w-full rounded-xl border border-white/10 bg-black/30 object-contain p-2"
               />
             )}
 
