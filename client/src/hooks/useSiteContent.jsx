@@ -56,6 +56,14 @@ export function mergeSiteContent(raw) {
   for (const key of LIST_KEYS) {
     if (Array.isArray(data[key])) out[key] = data[key];
   }
+  // One-time migration: legacy skills were plain strings; the site now uses
+  // logo+name tiles. Until the admin re-saves, fall back to the new defaults.
+  if (Array.isArray(data.skills)) {
+    const allTiles = data.skills.every(
+      (c) => c && Array.isArray(c.skills) && c.skills.every((s) => typeof s === "object")
+    );
+    if (!allTiles) out.skills = DEFAULT_CONTENT.skills;
+  }
   return out;
 }
 

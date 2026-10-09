@@ -125,21 +125,44 @@ export const SOCIAL_ICONS = [
 
 export const SKILL_CATEGORIES = [
   {
-    title: "Web Development",
-    skills: ["HTML", "CSS", "JavaScript", "React", "Responsive Design"],
-  },
-  {
-    title: "Video & Content",
-    skills: ["Video Editing", "Content Creation"],
-  },
-  {
-    title: "Professional",
+    title: "Languages",
     skills: [
-      "Problem Solving",
-      "Team Collaboration",
-      "Time Management",
-      "Adaptability",
+      { name: "HTML", logo: "html" },
+      { name: "CSS", logo: "css" },
+      { name: "JavaScript", logo: "javascript" },
+      { name: "TypeScript", logo: "typescript" },
+      { name: "Python", logo: "python" },
+      { name: "SQL", logo: "sql" },
+      { name: "Bash", logo: "bash" },
     ],
+  },
+  {
+    title: "Frameworks",
+    skills: [
+      { name: "React", logo: "react" },
+      { name: "Next.js", logo: "next.js" },
+      { name: "Tailwind CSS", logo: "tailwind" },
+      { name: "Node.js", logo: "node" },
+      { name: "Express", logo: "express" },
+      { name: "Vite", logo: "vite" },
+      { name: "Firebase", logo: "firebase" },
+      { name: "Vue", logo: "vue" },
+    ],
+  },
+  {
+    title: "DevOps",
+    skills: [
+      { name: "Git", logo: "git" },
+      { name: "GitHub Actions", logo: "github actions" },
+      { name: "Docker", logo: "docker" },
+      { name: "Kubernetes", logo: "kubernetes" },
+      { name: "CI/CD", logo: "ci/cd" },
+      { name: "Linux", logo: "linux" },
+    ],
+  },
+  {
+    title: "Cloud",
+    skills: [{ name: "AWS", logo: "aws" }],
   },
 ];
 

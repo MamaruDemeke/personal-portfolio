@@ -11,9 +11,14 @@ const ITEM_HUES = [
   "#FBBF24",
 ];
 
+const toItem = (s) =>
+  typeof s === "string" ? { name: s, logo: s } : s;
+
 export default function Marquee() {
   const { skills } = useSiteContent();
-  const items = (skills || []).flatMap((c) => c.skills || []);
+  const items = (skills || []).flatMap((c) =>
+    (c.skills || []).map(toItem).map((s) => s.name)
+  );
   const row = items.length ? [...items, ...items] : [];
 
   if (!row.length) return null;
