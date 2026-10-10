@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, TextInput, SelectInput } from "../fields.jsx";
 import TechIcon, { TECH_LOGOS } from "../../TechIcon.jsx";
+import { SKILL_LIBRARY } from "../../../data/constants.js";
 
 const newId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
@@ -14,6 +15,21 @@ const toItem = (s) =>
   typeof s === "string" ? { id: newId(), name: s, logo: s } : s;
 
 const LOGO_OPTIONS = TECH_LOGOS.map((l) => ({ value: l, label: l }));
+
+/* Pick the library group that matches a category title, e.g.
+   "Languages" / "Frameworks" / "DevOps" / "Cloud". */
+function libraryGroupFor(title) {
+  const t = String(title || "").toLowerCase();
+  if (t.includes("language")) return "Languages";
+  if (t.includes("framework") || t.includes("frame") || t.includes("react") || t.includes("ui")) {
+    return "Frameworks";
+  }
+  if (t.includes("devops") || t.includes("dev ops") || t.includes("ci") || t.includes("ops")) {
+    return "DevOps";
+  }
+  if (t.includes("cloud")) return "Cloud";
+  return null;
+}
 
 export default function SkillsEditor({ content, update }) {
   const skills = content.skills || [];
@@ -87,6 +103,17 @@ export default function SkillsEditor({ content, update }) {
       cats.map((c, idx) => (idx === i ? { ...c, skills: [...c.skills, item] } : c))
     );
     setDrafts({ ...drafts, [i]: { name: "", logo: d.logo || "" } });
+  };
+  const addLibrarySkill = (i, lib) => {
+    const has = cats[i].skills.some(
+      (s) => String(s.name).toLowerCase() === String(lib.name).toLowerCase()
+    );
+    if (has) return;
+    setSkills(
+      cats.map((c, idx) =>
+        idx === i ? { ...c, skills: [...c.skills, { id: newId(), ...lib }] } : c
+      )
+    );
   };
 
   return (
@@ -207,6 +234,34 @@ export default function SkillsEditor({ content, update }) {
                   </div>
                 </div>
               ))}
+
+              {libraryGroupFor(cat.title) && (
+                <div className="rounded-lg border border-white/10 bg-surface/30 p-2.5">
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                    Add from library — {libraryGroupFor(cat.title)}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SKILL_LIBRARY[libraryGroupFor(cat.title)].map((lib) => {
+                      const present = cat.skills.some(
+                        (s) =>
+                          String(s.name).toLowerCase() === String(lib.name).toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={lib.logo}
+                          type="button"
+                          onClick={() => addLibrarySkill(i, lib)}
+                          disabled={present}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-obsidian/50 px-2 py-1 text-xs text-slate-300 transition-colors hover:border-accent/50 hover:text-white disabled:cursor-default disabled:opacity-40"
+                        >
+                          <TechIcon name={lib.logo} className="h-3.5 w-3.5" />
+                          {lib.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2 pt-1">
                 <SelectInput
