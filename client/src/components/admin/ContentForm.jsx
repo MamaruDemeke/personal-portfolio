@@ -88,6 +88,26 @@ export default function ContentForm() {
     [content, published]
   );
 
+  /* Auto-publish: every edit is debounced and written to Firestore, so the
+     public site updates instantly without hitting "Save & Publish". */
+  const autoSaveTimer = useRef(null);
+  useEffect(() => {
+    if (loading) return undefined;
+    if (JSON.stringify(content) === JSON.stringify(published)) return undefined;
+    clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(async () => {
+      try {
+        await saveSiteContent(content);
+        setPublished(content);
+        localStorage.removeItem(DRAFT_KEY);
+        setNotice("Auto-saved — the public site updates instantly.");
+      } catch (err) {
+        setNotice(`Auto-save failed: ${err.message} — edits kept as a local draft.`);
+      }
+    }, 900);
+    return () => clearTimeout(autoSaveTimer.current);
+  }, [content, published, loading]);
+
   const onSave = async () => {
     setSaving(true);
     setNotice("");
